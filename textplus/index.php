@@ -26,6 +26,23 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
+/**
+ * Helper function to extract form data from session wizard data
+ * Only includes scalar values - excludes arrays which cause form errors
+ *
+ * @param stdClass $wizarddata Session wizard data
+ * @return stdClass Form data with only scalar values
+ */
+function get_form_data_from_wizard($wizarddata) {
+    $formdata = new stdClass();
+    $formdata->searchterm = $wizarddata->searchterm;
+    $formdata->casesensitive = $wizarddata->casesensitive;
+    $formdata->executionmode = $wizarddata->executionmode;
+    $formdata->replacementtext = $wizarddata->replacementtext;
+    // Note: databaseitems and selecteditems are NOT included - they stay in session only
+    return $formdata;
+}
+
 admin_externalpage_setup('local_textplus_tool');
 
 require_login();
@@ -92,7 +109,9 @@ if (!isset($SESSION->textplus_wizard)) {
 }
 
 // Prepare form custom data.
-$formdata = clone $SESSION->textplus_wizard;
+// Only pass scalar values to form - arrays cause htmlspecialchars errors
+$formdata = get_form_data_from_wizard($SESSION->textplus_wizard);
+
 $customdata = [
     'formdata' => $formdata,
     'step' => $step,
@@ -135,7 +154,7 @@ if ($step == 2 && $nextbtn) {
     // Move to step 3.
     $step = 3;
     $customdata['step'] = $step;
-    $customdata['formdata'] = $SESSION->textplus_wizard;
+    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
     
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
@@ -145,7 +164,7 @@ if ($step == 2 && $backbtn) {
     require_sesskey();
     $step = 1;
     $customdata['step'] = $step;
-    $customdata['formdata'] = $SESSION->textplus_wizard;
+    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
 
@@ -154,7 +173,7 @@ if ($step == 3 && $backbtn) {
     require_sesskey();
     $step = 2;
     $customdata['step'] = $step;
-    $customdata['formdata'] = $SESSION->textplus_wizard;
+    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
 
@@ -190,7 +209,7 @@ if ($fromform = $mform->get_data()) {
         // Move to step 2.
         $step = 2;
         $customdata['step'] = $step;
-        $customdata['formdata'] = $SESSION->textplus_wizard;
+        $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
         $mform = new \local_textplus\form\replacer_form(null, $customdata);
         
     // STEP 3: Execute text replacement
@@ -271,12 +290,6 @@ echo $OUTPUT->heading(get_string('heading', 'local_textplus'));
 if ($step == 1) {
     echo html_writer::tag('p', get_string('description', 'local_textplus'));
     
-    // Check GD library availability and display warning if missing.
-    if (!\local_textplus\replacer::is_gd_available()) {
-        echo $OUTPUT->notification(get_string('warning_nogd_detailed', 'local_textplus'),
-            \core\output\notification::NOTIFY_WARNING);
-    }
-    
     // Credits.
     echo html_writer::tag('p', get_string('credits', 'local_textplus'), ['class' => 'alert alert-info']);
 }
@@ -350,8 +363,35 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
             .item input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; }
             .item-info { flex: 1; }
             .item-location { color: #0056b3; font-weight: 600; margin-bottom: 4px; }
+            .item-location a { color: #0056b3; text-decoration: none; }
+            .item-location a:hover { text-decoration: underline; color: #003d82; }
             .item-table { color: #666; font-size: 0.9em; font-family: monospace; }
-            .item-context { color: #666; font-size: 0.9em; margin-top: 2px; word-break: break-word; }
+            .item-occurrences { margin-top: 8px; }
+            .occurrence-link { display: inline-block; background: #e3f2fd; color: #1976d2; 
+                             padding: 3px 8px; margin: 2px; border-radius: 3px; font-size: 0.85em;
+                             cursor: pointer; text-decoration: none; border: 1px solid #90caf9; }
+            .occurrence-link:hover { background: #bbdefb; text-decoration: none; }
+            
+            /* Modal for occurrence popup */
+            .occurrence-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0;
+                               width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+            .occurrence-modal-content { background-color: #fefefe; margin: 5% auto; padding: 0;
+                                       border: 1px solid #888; width: 90%; max-width: 1200px;
+                                       border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            .occurrence-modal-header { padding: 15px 20px; background: #1976d2; color: white;
+                                      border-radius: 8px 8px 0 0; display: flex; justify-content: space-between;
+                                      align-items: center; }
+            .occurrence-modal-header h3 { margin: 0; font-size: 1.2em; }
+            .occurrence-modal-close { color: white; font-size: 28px; font-weight: bold;
+                                     cursor: pointer; background: none; border: none; }
+            .occurrence-modal-close:hover { color: #ddd; }
+            .occurrence-modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+            .occurrence-code { background: #f5f5f5; padding: 15px; border-radius: 4px;
+                             font-family: "Courier New", Courier, monospace; font-size: 12px;
+                             white-space: pre-wrap; word-wrap: break-word;
+                             line-height: 1.6; border: 1px solid #ddd; overflow-x: auto; }
+            .occurrence-code .highlight { background-color: #ffeb3b; color: #000; 
+                                        font-weight: bold; padding: 2px 4px; border-radius: 2px; }
             .section-header { background: #f8f9fa; padding: 12px 15px; border-bottom: 2px solid #dee2e6;
                             font-weight: bold; margin-top: 20px; border-radius: 6px 6px 0 0; }
             .select-all-btn { margin: 10px 0; }
@@ -381,9 +421,21 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
             );
             
             echo html_writer::start_tag('div', ['class' => 'item-list']);
-            foreach ($databaseitems as $item) {
+            foreach ($databaseitems as $itemindex => $item) {
+                // Handle both object and array formats (session serialization may vary)
+                $table = is_object($item) ? $item->table : $item['table'];
+                $field = is_object($item) ? $item->field : $item['field'];
+                $id = is_object($item) ? $item->id : $item['id'];
+                $location = is_object($item) ? $item->location : $item['location'];
+                $url = is_object($item) ? 
+                    (isset($item->url) ? $item->url : null) : 
+                    (isset($item['url']) ? $item['url'] : null);
+                $occurrences = is_object($item) ? 
+                    (isset($item->occurrences) ? $item->occurrences : []) : 
+                    (isset($item['occurrences']) ? $item['occurrences'] : []);
+                
                 // Create unique item key for checkbox value (format: table|id|field).
-                $itemkey = s($item->table) . '|' . (int)$item->id . '|' . s($item->field);
+                $itemkey = s($table) . '|' . (int)$id . '|' . s($field);
                 $checkboxid = 'item_' . md5($itemkey);
                 
                 echo html_writer::start_div('item');
@@ -394,11 +446,46 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
                 
                 // Item info.
                 echo html_writer::start_tag('label', ['for' => $checkboxid, 'style' => 'flex: 1; margin: 0; cursor: pointer;']);
-                echo html_writer::div(s($item->location), 'item-location');
-                echo html_writer::div(s($item->table) . '.' . s($item->field) . ' (ID: ' . (int)$item->id . ')', 'item-table');
-                if (!empty($item->context_preview)) {
-                    echo html_writer::div('"...' . s($item->context_preview) . '..."', 'item-context');
+                
+                // Location (make it clickable if URL exists)
+                if ($url) {
+                    $locationhtml = html_writer::link($url, s($location), [
+                        'target' => '_blank',
+                        'onclick' => 'event.stopPropagation();'
+                    ]);
+                    echo html_writer::div($locationhtml, 'item-location');
+                } else {
+                    echo html_writer::div(s($location), 'item-location');
                 }
+                
+                echo html_writer::div(s($table) . '.' . s($field) . ' (ID: ' . (int)$id . ')', 'item-table');
+                
+                // Show occurrences as clickable links
+                if (!empty($occurrences) && is_array($occurrences)) {
+                    $occurrencecount = count($occurrences);
+                    echo html_writer::start_div('item-occurrences');
+                    echo html_writer::tag('strong', $occurrencecount . ' occurrence' . ($occurrencecount > 1 ? 's' : '') . ': ');
+                    
+                    foreach ($occurrences as $occindex => $occurrence) {
+                        $occid = 'occ_' . $itemindex . '_' . $occindex;
+                        $contextdata = is_array($occurrence) ? 
+                            (isset($occurrence['context']) ? $occurrence['context'] : '') :
+                            (isset($occurrence->context) ? $occurrence->context : '');
+                        $matchdata = is_array($occurrence) ? 
+                            (isset($occurrence['match']) ? $occurrence['match'] : '') :
+                            (isset($occurrence->match) ? $occurrence->match : '');
+                        
+                        echo html_writer::link('#', '#' . ($occindex + 1), [
+                            'class' => 'occurrence-link',
+                            'data-context' => htmlspecialchars($contextdata),
+                            'data-match' => htmlspecialchars($matchdata),
+                            'data-location' => htmlspecialchars($location),
+                            'onclick' => 'showOccurrence(this); return false;'
+                        ]);
+                    }
+                    echo html_writer::end_div();
+                }
+                
                 echo html_writer::end_tag('label');
                 
                 echo html_writer::end_div();
@@ -426,6 +513,70 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
                     this.textContent = allChecked ? '{$selectalltext}' : '{$deselectalltext}';
                 });
             ");
+            
+            // Add modal for occurrence popups
+            echo '<div id="occurrenceModal" class="occurrence-modal">';
+            echo '  <div class="occurrence-modal-content">';
+            echo '    <div class="occurrence-modal-header">';
+            echo '      <h3 id="occurrenceModalTitle">Code Snippet</h3>';
+            echo '      <button class="occurrence-modal-close" onclick="closeOccurrenceModal()">&times;</button>';
+            echo '    </div>';
+            echo '    <div class="occurrence-modal-body">';
+            echo '      <div id="occurrenceModalBody" class="occurrence-code"></div>';
+            echo '    </div>';
+            echo '  </div>';
+            echo '</div>';
+            
+            // JavaScript for occurrence modal
+            $js = <<<'JAVASCRIPT'
+                function showOccurrence(link) {
+                    var modal = document.getElementById('occurrenceModal');
+                    var title = document.getElementById('occurrenceModalTitle');
+                    var body = document.getElementById('occurrenceModalBody');
+                    
+                    var context = link.getAttribute('data-context');
+                    var match = link.getAttribute('data-match');
+                    var location = link.getAttribute('data-location');
+                    
+                    title.textContent = location;
+                    
+                    // Highlight the search term using simple string split/join
+                    // This avoids regex escaping issues
+                    var parts = context.split(new RegExp('(' + match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'));
+                    var highlightedContext = '';
+                    for (var i = 0; i < parts.length; i++) {
+                        if (i % 2 === 1) {
+                            highlightedContext += '<span class="highlight">' + parts[i] + '</span>';
+                        } else {
+                            highlightedContext += parts[i];
+                        }
+                    }
+                    
+                    body.innerHTML = highlightedContext;
+                    modal.style.display = 'block';
+                }
+                
+                function closeOccurrenceModal() {
+                    var modal = document.getElementById('occurrenceModal');
+                    modal.style.display = 'none';
+                }
+                
+                // Close modal when clicking outside of it
+                window.onclick = function(event) {
+                    var modal = document.getElementById('occurrenceModal');
+                    if (event.target == modal) {
+                        closeOccurrenceModal();
+                    }
+                }
+                
+                // Close modal on Escape key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        closeOccurrenceModal();
+                    }
+                });
+JAVASCRIPT;
+            echo html_writer::script($js);
         }
         
         // Hidden fields to preserve step data.

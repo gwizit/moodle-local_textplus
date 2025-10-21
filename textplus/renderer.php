@@ -174,143 +174,58 @@ class local_textplus_renderer extends plugin_renderer_base {
         $output .= html_writer::start_div('stats-container');
 
         // Filter replacement log for successful replacements only.
-        $successfulFs = array_filter($replacementlog, function($entry) {
-            return $entry['success'] && $entry['type'] === 'filesystem';
+        // TextPlus uses 'status' field with values: success, failed, skipped, preview
+        $successfulitems = array_filter($replacementlog, function($entry) {
+            return isset($entry['status']) && ($entry['status'] === 'success' || $entry['status'] === 'preview');
         });
-        $successfulDb = array_filter($replacementlog, function($entry) {
-            return $entry['success'] && $entry['type'] === 'database';
+        $faileditems = array_filter($replacementlog, function($entry) {
+            return isset($entry['status']) && $entry['status'] === 'failed';
         });
 
         if (!$scanonly) {
-            $output .= $this->render_stat_card($stats['files_replaced'],
+            $output .= $this->render_stat_card($stats['items_replaced'],
                 get_string('stats_replaced', 'local_textplus'));
 
-            if ($stats['db_files_replaced'] > 0) {
-                $output .= $this->render_stat_card($stats['db_files_replaced'],
-                    get_string('stats_dbreplaced', 'local_textplus'));
-            }
-
-            if ($stats['files_failed'] > 0) {
-                $output .= $this->render_stat_card($stats['files_failed'],
+            if ($stats['items_failed'] > 0) {
+                $output .= $this->render_stat_card($stats['items_failed'],
                     get_string('stats_failed', 'local_textplus'));
             }
+        } else {
+            // Preview mode - show items found
+            $output .= $this->render_stat_card($stats['items_found'],
+                get_string('stats_found', 'local_textplus'));
         }
 
         $output .= html_writer::end_div();
 
-        // No files replaced message.
-        if (!$scanonly && empty($successfulFs) && empty($successfulDb)) {
+        // No items replaced message.
+        if (!$scanonly && empty($successfulitems)) {
             $output .= html_writer::div(
-                get_string('nofilesreplaced', 'local_textplus'),
+                get_string('noitemsreplaced', 'local_textplus'),
                 'alert alert-warning'
             );
-            $output .= html_writer::tag('p', get_string('nofilesreplaced_desc', 'local_textplus'));
         }
 
-        // File system results - only show successfully replaced files with step 2 styling.
-        if (!$scanonly && !empty($successfulFs)) {
+        // Database text replacement results - show successfully replaced items.
+        if (!$scanonly && !empty($successfulitems)) {
             $output .= html_writer::div(
-                get_string('filesreplaced_fs', 'local_textplus'),
+                get_string('itemsreplaced', 'local_textplus'),
                 'section-header'
             );
             
             $output .= html_writer::start_div('file-list');
-            foreach ($successfulFs as $entry) {
-                $filepath = $entry['filename'];
-                $safefilepath = s($filepath);
-                $basename = basename($filepath);
+            foreach ($successfulitems as $entry) {
+                $table = isset($entry['table']) ? $entry['table'] : 'unknown';
+                $field = isset($entry['field']) ? $entry['field'] : 'unknown';
+                $id = isset($entry['id']) ? $entry['id'] : 0;
+                $message = isset($entry['message']) ? $entry['message'] : '';
                 
-                // Create file URL - use relative path from Moodle root.
-                $relativepath = str_replace($CFG->dirroot . '/', '', $filepath);
-                $fileurl = new \moodle_url('/' . $relativepath);
-                
-                $filelink = html_writer::link(
-                    $fileurl,
-                    s($basename),
-                    ['class' => 'file-link', 'target' => '_blank', 'title' => get_string('viewfile', 'local_textplus')]
-                );
+                $itemlabel = ucfirst($table) . ' (ID: ' . $id . ')';
                 
                 $output .= html_writer::start_div('file-item');
-                $output .= $filelink;
+                $output .= html_writer::tag('strong', s($itemlabel));
                 $output .= html_writer::div(
-                    s($safefilepath) . ' - ' . s($entry['message']),
-                    'file-details'
-                );
-                $output .= html_writer::end_div();
-            }
-            $output .= html_writer::end_div();
-        }
-
-        // Database results - only show successfully replaced files with step 2 styling.
-        if (!$scanonly && !empty($successfulDb)) {
-            $output .= html_writer::div(
-                get_string('filesreplaced_db', 'local_textplus'),
-                'section-header'
-            );
-            
-            $output .= html_writer::start_div('file-list');
-            foreach ($successfulDb as $entry) {
-                $filename = $entry['filename'];
-                
-                // Build pluginfile URL for database files using Moodle's proper method.
-                $fileurl = null;
-                $filedesc = s($filename);
-                
-                if (!empty($entry['contextid']) && !empty($entry['component']) && !empty($entry['filearea'])) {
-                    try {
-                        // Use Moodle's file storage to verify file exists and get proper URL.
-                        $fs = get_file_storage();
-                        $storedfile = $fs->get_file(
-                            $entry['contextid'],
-                            $entry['component'],
-                            $entry['filearea'],
-                            isset($entry['itemid']) ? $entry['itemid'] : 0,
-                            !empty($entry['filepath']) ? $entry['filepath'] : '/',
-                            $filename
-                        );
-                        
-                        if ($storedfile && !$storedfile->is_directory()) {
-                            // Use Moodle's proper URL generation method.
-                            $fileurl = \moodle_url::make_pluginfile_url(
-                                $entry['contextid'],
-                                $entry['component'],
-                                $entry['filearea'],
-                                isset($entry['itemid']) ? $entry['itemid'] : null,
-                                !empty($entry['filepath']) ? $entry['filepath'] : '/',
-                                $filename,
-                                false // Don't force download.
-                            );
-                        }
-                    } catch (\Exception $e) {
-                        // If file can't be accessed, URL will remain null.
-                        $fileurl = null;
-                    }
-                    
-                    if ($fileurl) {
-                        $filelink = html_writer::link(
-                            $fileurl,
-                            s($filename),
-                            ['class' => 'file-link', 'target' => '_blank', 'title' => get_string('viewfile', 'local_textplus')]
-                        );
-                    } else {
-                        // No valid URL - just show filename.
-                        $filelink = html_writer::tag('span', s($filename), ['class' => 'file-link']);
-                    }
-                    
-                    // Add component/filearea details to description.
-                    $filedesc = s($entry['component']) . ' / ' . s($entry['filearea']);
-                } else {
-                    // No URL available - just show filename.
-                    $filelink = html_writer::tag('span', s($filename), ['class' => 'file-link']);
-                    if (!empty($entry['component']) && !empty($entry['filearea'])) {
-                        $filedesc = s($entry['component']) . ' / ' . s($entry['filearea']);
-                    }
-                }
-                
-                $output .= html_writer::start_div('file-item');
-                $output .= $filelink;
-                $output .= html_writer::div(
-                    $filedesc . ' - ' . s($entry['message']),
+                    s($table) . '.' . s($field) . ' - ' . s($message),
                     'file-details'
                 );
                 $output .= html_writer::end_div();
@@ -332,7 +247,7 @@ class local_textplus_renderer extends plugin_renderer_base {
         // Completion message.
         if (!$scanonly) {
             $completemsg = get_string('operationcomplete', 'local_textplus') . ' ';
-            if ($stats['files_replaced'] > 0 || $stats['db_files_replaced'] > 0) {
+            if ($stats['items_replaced'] > 0) {
                 $completemsg .= get_string('operationcomplete_execute', 'local_textplus');
                 // Add cache clearing link
                 $cachepurgeurl = new moodle_url('/admin/purgecaches.php', ['confirm' => 1, 'sesskey' => sesskey()]);

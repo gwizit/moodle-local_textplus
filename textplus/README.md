@@ -210,6 +210,10 @@ The plugin searches text content in the following Moodle tables:
 - `assign` - Assignment descriptions
 - And other activity tables
 
+**Third-Party Plugin Support:**
+- **Edwiser RemUI Page Builder** - Automatically detected and included if installed
+  - `edwiser_remui_pages` - Custom page titles and content
+
 ---
 
 ## How It Works

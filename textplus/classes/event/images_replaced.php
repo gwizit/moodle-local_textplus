@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Images replaced event
+ * Text replaced event
  *
  * @package    local_textplus
  * @copyright  2025 G Wiz IT Solutions {@link https://gwizit.com}
@@ -28,7 +28,7 @@ namespace local_textplus\event;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Images replaced event class
+ * Text replaced event class
  *
  * @package    local_textplus
  * @copyright  2025 G Wiz IT Solutions
@@ -50,7 +50,7 @@ class images_replaced extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventimagereplaced', 'local_textplus');
+        return get_string('eventtextreplaced', 'local_textplus');
     }
 
     /**
@@ -59,8 +59,9 @@ class images_replaced extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' replaced images matching term '{$this->other['searchterm']}'. " .
-            "Files replaced: {$this->other['filesreplaced']}, DB files replaced: {$this->other['dbfilesreplaced']}.";
+        $itemsreplaced = isset($this->other['itemsreplaced']) ? $this->other['itemsreplaced'] : 0;
+        return "The user with id '$this->userid' replaced text matching term '{$this->other['searchterm']}'. " .
+            "Database items replaced: {$itemsreplaced}.";
     }
 
     /**
