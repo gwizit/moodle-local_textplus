@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Privacy provider for Image Replacer plugin
+ * Privacy provider for TextPlus plugin
  *
  * @package    local_textplus
  * @copyright  2025 G Wiz IT Solutions {@link https://gwizit.com}
@@ -58,7 +58,7 @@ class provider implements
             [
                 'userid' => 'privacy:metadata:local_textplus_log:userid',
                 'searchterm' => 'privacy:metadata:local_textplus_log:searchterm',
-                'filesreplaced' => 'privacy:metadata:local_textplus_log:filesreplaced',
+                'itemsreplaced' => 'privacy:metadata:local_textplus_log:itemsreplaced',
                 'timemodified' => 'privacy:metadata:local_textplus_log:timemodified',
             ],
             'privacy:metadata:local_textplus_log'
@@ -108,9 +108,9 @@ class provider implements
         foreach ($logs as $log) {
             $data = (object)[
                 'searchterm' => $log->searchterm,
-                'filesreplaced' => $log->filesreplaced,
-                'dbfilesreplaced' => $log->dbfilesreplaced,
-                'filesfailed' => $log->filesfailed,
+                'itemsreplaced' => $log->itemsreplaced,
+                'dbitemsreplaced' => $log->dbitemsreplaced,
+                'itemsfailed' => $log->itemsfailed,
                 'dryrun' => $log->dryrun ? get_string('yes') : get_string('no'),
                 'timecreated' => transform::datetime($log->timecreated),
                 'timemodified' => transform::datetime($log->timemodified),

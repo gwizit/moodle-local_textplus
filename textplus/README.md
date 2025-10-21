@@ -4,7 +4,7 @@ A powerful Moodle plugin that allows site administrators to search and replace t
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** v1.0.0  
+**Version:** v1.0.1  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
@@ -375,6 +375,29 @@ The plugin defines two capabilities and requires site administrator access:
 ---
 
 ## Changelog
+
+### Version 1.0.1 (2025-10-21)
+**Bug Fixes:**
+- 🐛 **Fixed code snippet pop-ups in Step 2**:
+  - Resolved double HTML encoding issues that showed `&amp;lt;` instead of `<`
+  - Fixed UTF-8 character corruption (Japanese, Chinese, Arabic, emoji now display correctly)
+  - Added robust error handling for malformed UTF-8 sequences
+  - Implemented base64 encoding for data attributes to preserve exact content
+  - Added fallback decoding using TextDecoder API for edge cases
+  - Fixed blank pop-ups caused by empty contexts
+  - Fixed close button (X) triggering page refresh
+- 🎯 **Improved code display**:
+  - Code snippets now display exactly as stored in database
+  - HTML entities, tags, and special characters show as source code
+  - Multi-byte UTF-8 characters (このコース, 中文, العربية) display perfectly
+  - Search terms properly highlighted across all languages
+
+**Technical Changes:**
+- Modified `get_all_occurrences()` in `replacer.php` to store raw content
+- Updated data attributes to use base64 encoding instead of htmlspecialchars()
+- Implemented `base64DecodeUnicode()` JavaScript function with multi-layered decoding
+- Added try-catch error handling to prevent pop-up crashes
+- Changed close button to `type="button"` to prevent form submission
 
 ### Version 1.0.0 (2025-10-20)
 **Initial Release - TextPlus**

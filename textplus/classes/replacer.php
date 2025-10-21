@@ -278,11 +278,8 @@ class replacer {
             $contextlength = min(strlen($content) - $contextstart, $searchlen + 2000);
             $contextraw = substr($content, $contextstart, $contextlength);
             
-            // HTML-escape the context to show tags as visible text (code view)
-            $context = htmlspecialchars($contextraw, ENT_QUOTES, 'UTF-8');
-            
-            // Preserve line breaks by converting them to <br> tags
-            $context = nl2br($context);
+            // Store raw content - escaping will be done at display time in JavaScript
+            $context = $contextraw;
             
             // Add ellipsis if we're not at the start/end
             if ($contextstart > 0) {
@@ -295,7 +292,7 @@ class replacer {
             $occurrences[] = [
                 'position' => $pos,
                 'context' => $context,
-                'match' => htmlspecialchars(substr($content, $pos, $searchlen), ENT_QUOTES, 'UTF-8')
+                'match' => substr($content, $pos, $searchlen)
             ];
             
             $offset = $pos + 1; // Move past this occurrence

@@ -1,9 +1,9 @@
 # Moodle TextPlus Plugin
 ## Installation & Distribution Package
 
-**Created**: October 20, 2025  
+**Created**: October 21, 2025  
 **Developer**: G Wiz IT Solutions (https://gwizit.com)  
-**Version**: 1.0.0  
+**Version**: 1.0.1  
 **License**: GNU GPL v3
 
 ---
@@ -38,6 +38,7 @@ Complete Moodle 4.3+ plugin with:
 - ✅ Web-based admin interface
 - ✅ Database text search & replace
 - ✅ 3-step wizard interface (Search, Select, Replace)
+- ✅ Code snippet pop-ups with proper UTF-8 and HTML entity handling
 - ✅ Safe dry run mode
 - ✅ Complete documentation
 - ✅ GDPR compliance

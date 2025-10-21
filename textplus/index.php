@@ -387,11 +387,12 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
             .occurrence-modal-close:hover { color: #ddd; }
             .occurrence-modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
             .occurrence-code { background: #f5f5f5; padding: 15px; border-radius: 4px;
-                             font-family: "Courier New", Courier, monospace; font-size: 12px;
+                             font-family: "Courier New", Courier, monospace; font-size: 13px;
                              white-space: pre-wrap; word-wrap: break-word;
-                             line-height: 1.6; border: 1px solid #ddd; overflow-x: auto; }
+                             line-height: 1.6; border: 1px solid #ddd; overflow-x: auto; 
+                             color: #333; }
             .occurrence-code .highlight { background-color: #ffeb3b; color: #000; 
-                                        font-weight: bold; padding: 2px 4px; border-radius: 2px; }
+                                        font-weight: bold; padding: 1px 2px; border-radius: 2px; }
             .section-header { background: #f8f9fa; padding: 12px 15px; border-bottom: 2px solid #dee2e6;
                             font-weight: bold; margin-top: 20px; border-radius: 6px 6px 0 0; }
             .select-all-btn { margin: 10px 0; }
@@ -475,11 +476,18 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
                             (isset($occurrence['match']) ? $occurrence['match'] : '') :
                             (isset($occurrence->match) ? $occurrence->match : '');
                         
+                        // Skip empty contexts
+                        if (empty($contextdata)) {
+                            continue;
+                        }
+                        
+                        // Use base64 encoding to preserve exact data without any HTML entity issues
+                        // This prevents double-encoding problems with database content that already has entities
                         echo html_writer::link('#', '#' . ($occindex + 1), [
                             'class' => 'occurrence-link',
-                            'data-context' => htmlspecialchars($contextdata),
-                            'data-match' => htmlspecialchars($matchdata),
-                            'data-location' => htmlspecialchars($location),
+                            'data-context' => base64_encode($contextdata),
+                            'data-match' => base64_encode($matchdata),
+                            'data-location' => base64_encode($location),
                             'onclick' => 'showOccurrence(this); return false;'
                         ]);
                     }
@@ -519,7 +527,7 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
             echo '  <div class="occurrence-modal-content">';
             echo '    <div class="occurrence-modal-header">';
             echo '      <h3 id="occurrenceModalTitle">Code Snippet</h3>';
-            echo '      <button class="occurrence-modal-close" onclick="closeOccurrenceModal()">&times;</button>';
+            echo '      <button type="button" class="occurrence-modal-close" onclick="closeOccurrenceModal(); return false;">&times;</button>';
             echo '    </div>';
             echo '    <div class="occurrence-modal-body">';
             echo '      <div id="occurrenceModalBody" class="occurrence-code"></div>';
@@ -529,30 +537,101 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
             
             // JavaScript for occurrence modal
             $js = <<<'JAVASCRIPT'
+                // UTF-8 safe base64 decode function with error handling
+                // Standard atob() doesn't handle UTF-8 multi-byte characters (Japanese, Chinese, Arabic, emoji, etc.)
+                function base64DecodeUnicode(str) {
+                    try {
+                        // Method 1: Try the standard UTF-8 decoding approach
+                        return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join(''));
+                    } catch (e) {
+                        // Method 2: Fallback for malformed sequences - use TextDecoder if available
+                        try {
+                            var binaryString = atob(str);
+                            var bytes = new Uint8Array(binaryString.length);
+                            for (var i = 0; i < binaryString.length; i++) {
+                                bytes[i] = binaryString.charCodeAt(i);
+                            }
+                            // Use TextDecoder for robust UTF-8 decoding
+                            if (typeof TextDecoder !== 'undefined') {
+                                return new TextDecoder('utf-8').decode(bytes);
+                            } else {
+                                // Final fallback: return raw atob result
+                                return binaryString;
+                            }
+                        } catch (e2) {
+                            // Last resort: return error message
+                            console.error('Base64 decode error:', e, e2);
+                            return '[Error decoding content]';
+                        }
+                    }
+                }
+                
                 function showOccurrence(link) {
                     var modal = document.getElementById('occurrenceModal');
                     var title = document.getElementById('occurrenceModalTitle');
                     var body = document.getElementById('occurrenceModalBody');
                     
-                    var context = link.getAttribute('data-context');
-                    var match = link.getAttribute('data-match');
-                    var location = link.getAttribute('data-location');
+                    // Get base64-encoded data from attributes and decode
+                    var contextEncoded = link.getAttribute('data-context');
+                    var matchEncoded = link.getAttribute('data-match');
+                    var locationEncoded = link.getAttribute('data-location');
+                    
+                    // Decode from base64 using UTF-8 safe function
+                    var context = base64DecodeUnicode(contextEncoded);
+                    var match = base64DecodeUnicode(matchEncoded);
+                    var location = base64DecodeUnicode(locationEncoded);
                     
                     title.textContent = location;
                     
-                    // Highlight the search term using simple string split/join
-                    // This avoids regex escaping issues
-                    var parts = context.split(new RegExp('(' + match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'));
-                    var highlightedContext = '';
+                    // Clear the body first
+                    body.textContent = '';
+                    
+                    // Create a text node to safely display the code without HTML interpretation
+                    // This prevents any HTML/JS from executing and shows it as plain text
+                    
+                    // For highlighting, we need to split the context and wrap the match
+                    // Use a case-insensitive search to find all matches
+                    var contextLower = context.toLowerCase();
+                    var matchLower = match.toLowerCase();
+                    var lastIndex = 0;
+                    var result = '';
+                    
+                    // Find all occurrences of the search term to highlight
+                    while (true) {
+                        var index = contextLower.indexOf(matchLower, lastIndex);
+                        if (index === -1) {
+                            // Add remaining text
+                            result += context.substring(lastIndex);
+                            break;
+                        }
+                        
+                        // Add text before match
+                        result += context.substring(lastIndex, index);
+                        
+                        // Add highlighted match
+                        result += '<<<HIGHLIGHT_START>>>' + context.substring(index, index + match.length) + '<<<HIGHLIGHT_END>>>';
+                        
+                        lastIndex = index + match.length;
+                    }
+                    
+                    // Now split by our markers and create text nodes and highlight spans
+                    var parts = result.split(/<<<HIGHLIGHT_START>>>|<<<HIGHLIGHT_END>>>/);
                     for (var i = 0; i < parts.length; i++) {
                         if (i % 2 === 1) {
-                            highlightedContext += '<span class="highlight">' + parts[i] + '</span>';
+                            // This is a highlighted part
+                            var span = document.createElement('span');
+                            span.className = 'highlight';
+                            span.textContent = parts[i];
+                            body.appendChild(span);
                         } else {
-                            highlightedContext += parts[i];
+                            // This is normal text
+                            var textNode = document.createTextNode(parts[i]);
+                            body.appendChild(textNode);
                         }
                     }
                     
-                    body.innerHTML = highlightedContext;
                     modal.style.display = 'block';
                 }
                 
