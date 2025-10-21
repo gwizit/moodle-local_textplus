@@ -38,13 +38,10 @@ class local_textplus_renderer extends plugin_renderer_base {
      * Render results page
      *
      * @param \local_textplus\replacer $replacer Replacer instance
-     * @param array $filesystemfiles File system files
-     * @param array $databasefiles Database files
-     * @param bool $scanonly Whether this is scan only
-     * @param array $formdata Form data to preserve for confirmation
+     * @param bool $scanonly Whether this is scan only (preview mode)
      * @return string HTML output
      */
-    public function render_results($replacer, $filesystemfiles, $databasefiles, $scanonly, $formdata = []) {
+    public function render_results($replacer, $scanonly) {
         global $PAGE, $CFG;
 
         $output = '';

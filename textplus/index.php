@@ -58,9 +58,6 @@ $PAGE->set_heading(get_string('heading', 'local_textplus'));
 // Get default settings.
 $defaultsearchterm = get_config('local_textplus', 'defaultsearchterm');
 $defaultmode = get_config('local_textplus', 'defaultmode');
-$defaultpreservepermissions = get_config('local_textplus', 'defaultpreservepermissions');
-$defaultsearchdatabase = get_config('local_textplus', 'defaultsearchdatabase');
-$defaultsearchfilesystem = get_config('local_textplus', 'defaultsearchfilesystem');
 
 // Set defaults if not configured.
 if ($defaultsearchterm === false) {
@@ -68,15 +65,6 @@ if ($defaultsearchterm === false) {
 }
 if ($defaultmode === false) {
     $defaultmode = 'preview';
-}
-if ($defaultpreservepermissions === false) {
-    $defaultpreservepermissions = 0;
-}
-if ($defaultsearchdatabase === false) {
-    $defaultsearchdatabase = 1;
-}
-if ($defaultsearchfilesystem === false) {
-    $defaultsearchfilesystem = 0;
 }
 
 // Get current step.
@@ -264,9 +252,7 @@ if ($fromform = $mform->get_data()) {
         // Display results.
         echo $OUTPUT->header();
         $renderer = $PAGE->get_renderer('local_textplus');
-        echo $renderer->render_results($replacer, 
-            $SESSION->textplus_wizard->databaseitems, 
-            false, []);
+        echo $renderer->render_results($replacer, $config['dry_run']);
         
         // Clear session (Start Over button is rendered by the renderer).
         unset($SESSION->textplus_wizard);
