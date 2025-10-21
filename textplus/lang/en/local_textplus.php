@@ -85,6 +85,7 @@ $string['noitemsfound'] = 'No matching text found';
 $string['noitemsfound_desc'] = 'No database content containing "{$a}" was found.';
 $string['noitemsreplaced'] = 'No items were updated';
 $string['noitemsreplaced_desc'] = 'No items were successfully updated. Check the error messages above for details.';
+$string['itemsreplaced'] = 'Items Updated';
 $string['operationcomplete'] = 'Operation completed!';
 $string['operationcomplete_preview'] = 'This was a dry run - no database records were actually modified.';
 $string['operationcomplete_execute'] = 'Database records have been updated.';
