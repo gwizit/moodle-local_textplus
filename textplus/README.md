@@ -10,7 +10,16 @@ A powerful Moodle plugin that allows site administrators to search and replace t
 
 ---
 
-## What's New in Version 1.0.0
+## What's New in Version 1.0.1
+
+### 🎨 Edwiser Page Builder Support
+- **Full Compatibility** - Search and replace text within Edwiser Page Builder pages
+- **Smart Decoding** - Automatically handles base64-encoded serialized content
+- **Content Snippets** - Preview actual page content in search results (not encoded data)
+- **Safe Processing** - Preserves page structure while updating text content
+- **Dual Mode Support** - Works with both published and draft Edwiser pages
+
+### Previous Updates (v1.0.0)
 
 ### 🎯 Multi-Step Wizard Interface
 - **Step 1: Search Criteria** - Define what text to find
@@ -56,6 +65,7 @@ A powerful Moodle plugin that allows site administrators to search and replace t
 - ✅ **Activities**: Quiz descriptions, assignment details, forum posts
 - ✅ **Sections**: Course section summaries and names
 - ✅ **Books**: Book chapter content
+- ✅ **Edwiser Page Builder**: Published and draft pages (base64-encoded content)
 
 ---
 

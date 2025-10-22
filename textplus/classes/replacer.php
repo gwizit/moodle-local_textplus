@@ -132,10 +132,45 @@ class replacer {
             'question_answers' => ['answer', 'feedback'],
         ];
 
-        // Check if Edwiser RemUI Page Builder is installed and add its tables
-        if ($DB->get_manager()->table_exists('edwiser_remui_pages')) {
-            $this->add_output("Edwiser RemUI Page Builder detected - including custom pages", 'info');
-            $searchtables['edwiser_remui_pages'] = ['title', 'content'];
+        // Check if Edwiser Page Builder is installed and add its tables
+        if ($DB->get_manager()->table_exists('edw_pages')) {
+            $this->add_output("Edwiser Page Builder detected - including published pages", 'info');
+            $searchtables['edw_pages'] = ['pagename', 'pagedesc', 'pagecontent', 'seotag', 'seodesc'];
+            
+            // IMPORTANT: Edwiser pages store their content in block_instances!
+            // We need to search block_instances where pagetypepattern = 'epb-page-publish'
+            $this->add_output("Edwiser Page Builder content blocks will be searched in block_instances table", 'info');
+        }
+
+        // Check if Edwiser Page Builder draft table exists
+        if ($DB->get_manager()->table_exists('edw_pages_draft')) {
+            $this->add_output("Edwiser Page Builder drafts detected - including draft pages", 'info');
+            $searchtables['edw_pages_draft'] = ['pagename', 'pagedesc', 'pagecontent', 'seotag', 'seodesc'];
+        }
+
+        // Check if Edwiser Page Builder blocks table exists
+        if ($DB->get_manager()->table_exists('edw_page_blocks')) {
+            $this->add_output("Edwiser Page Builder blocks detected - including reusable blocks", 'info');
+            $searchtables['edw_page_blocks'] = ['title', 'label', 'content'];
+        }
+
+        // Check if Edwiser Page Builder block layouts table exists
+        if ($DB->get_manager()->table_exists('edw_page_block_layouts')) {
+            $this->add_output("Edwiser Page Builder block layouts detected - including block card layouts", 'info');
+            $searchtables['edw_page_block_layouts'] = ['title', 'label', 'content'];
+        }
+
+        // Check if Edwiser RemUI Format is installed (stores page layouts in JSON)
+        if ($DB->get_manager()->table_exists('format_remuilayout')) {
+            $this->add_output("Edwiser RemUI Format detected - including layout pages", 'info');
+            $searchtables['format_remuilayout'] = ['layoutdata'];
+        }
+
+        // Check if Edwiser RemUI theme is installed (stores content in config_plugins table)
+        if ($DB->record_exists('config_plugins', ['plugin' => 'theme_remui'])) {
+            $this->add_output("Edwiser RemUI Theme detected - including theme configuration content", 'info');
+            // Note: config_plugins table will be searched with special handling for plugin='theme_remui'
+            $searchtables['config_plugins'] = ['value'];
         }
 
         try {
@@ -153,28 +188,87 @@ class replacer {
 
                     $this->add_output("Searching {$table}.{$field}...", 'info');
 
-                    // Build SQL based on case sensitivity
-                    if ($casesensitive) {
-                        $sql = "SELECT id, {$field} as content
+                    // Build SQL based on case sensitivity and table-specific requirements
+                    if ($table === 'config_plugins') {
+                        // Special handling for config_plugins - only search theme_remui records
+                        if ($casesensitive) {
+                            $sql = "SELECT id, {$field} as content, plugin, name
+                                    FROM {{$table}}
+                                    WHERE plugin = :plugin
+                                    AND " . $DB->sql_like($field, ':searchterm', true, true);
+                        } else {
+                            $sql = "SELECT id, {$field} as content, plugin, name
+                                    FROM {{$table}}
+                                    WHERE plugin = :plugin
+                                    AND " . $DB->sql_like($field, ':searchterm', false, false);
+                        }
+                        $params = [
+                            'plugin' => 'theme_remui',
+                            'searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'
+                        ];
+                    } else if ($table === 'block_instances' && $field === 'configdata') {
+                        // Special handling for block_instances - search Edwiser Page Builder blocks
+                        // We need to get ALL blocks first, then decode and search in PHP
+                        // because we can't search base64-encoded serialized data with SQL LIKE
+                        $sql = "SELECT id, {$field} as content, blockname, pagetypepattern, subpagepattern
                                 FROM {{$table}}
-                                WHERE " . $DB->sql_like($field, ':searchterm', true, true);
+                                WHERE (pagetypepattern = :pagetype1 OR pagetypepattern = :pagetype2)";
+                        $params = [
+                            'pagetype1' => 'epb-page-publish',
+                            'pagetype2' => 'epb-page-draft',
+                        ];
+                        
+                        // Get all Edwiser blocks
+                        $allrecords = $DB->get_records_sql($sql, $params);
+                        
+                        // Now decode and search each one
+                        $records = [];
+                        foreach ($allrecords as $record) {
+                            $decoded = $this->decode_base64_serialized($record->content);
+                            if ($decoded !== false) {
+                                // Search in decoded content
+                                $found = false;
+                                if ($casesensitive) {
+                                    $found = (strpos($decoded, $searchterm) !== false);
+                                } else {
+                                    $found = (stripos($decoded, $searchterm) !== false);
+                                }
+                                
+                                if ($found) {
+                                    // Store the decoded content for snippet generation
+                                    $record->decoded_content = $decoded;
+                                    $records[] = $record;
+                                }
+                            }
+                        }
+                        
+                        $this->add_output("Searched " . count($allrecords) . " Edwiser blocks, found " . count($records) . " matches", 'info');
                     } else {
-                        $sql = "SELECT id, {$field} as content
-                                FROM {{$table}}
-                                WHERE " . $DB->sql_like($field, ':searchterm', false, false);
+                        // Standard search for other tables
+                        if ($casesensitive) {
+                            $sql = "SELECT id, {$field} as content
+                                    FROM {{$table}}
+                                    WHERE " . $DB->sql_like($field, ':searchterm', true, true);
+                        } else {
+                            $sql = "SELECT id, {$field} as content
+                                    FROM {{$table}}
+                                    WHERE " . $DB->sql_like($field, ':searchterm', false, false);
+                        }
+                        $params = ['searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'];
                     }
-
-                    $params = ['searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'];
                     
                     $records = $DB->get_records_sql($sql, $params);
 
                     foreach ($records as $record) {
-                        // Get context preview (50 chars before and after match)
+                        // For Edwiser blocks, use decoded content for snippets
                         $content = $record->content;
-                        $preview = $this->get_context_preview($content, $searchterm, $casesensitive);
+                        $searchable_content = isset($record->decoded_content) ? $record->decoded_content : $content;
+                        
+                        // Get context preview (50 chars before and after match)
+                        $preview = $this->get_context_preview($searchable_content, $searchterm, $casesensitive);
                         
                         // Get all occurrences with context
-                        $occurrences = $this->get_all_occurrences($content, $searchterm, $casesensitive);
+                        $occurrences = $this->get_all_occurrences($searchable_content, $searchterm, $casesensitive);
                         
                         // Get human-readable location
                         $location = $this->get_item_location($table, $record->id);
@@ -205,6 +299,194 @@ class replacer {
             $this->add_output("Error searching database: " . $e->getMessage(), 'error');
             return [];
         }
+    }
+
+    /**
+     * Check if a field contains JSON data that needs special handling
+     *
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return bool True if field contains JSON data
+     */
+    protected function is_json_field($table, $field) {
+        $jsonfields = [
+            'format_remuilayout' => ['layoutdata'],
+            'edw_pages' => ['pagecontent'],
+            'edw_pages_draft' => ['pagecontent'],
+            'edw_page_blocks' => ['content'],
+            'edw_page_block_layouts' => ['content'],
+        ];
+        
+        return isset($jsonfields[$table]) && in_array($field, $jsonfields[$table]);
+    }
+
+    /**
+     * Check if a field contains base64-encoded serialized PHP data
+     *
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return bool True if field contains base64 serialized data
+     */
+    protected function is_base64_serialized_field($table, $field) {
+        $base64fields = [
+            'block_instances' => ['configdata'],
+        ];
+        
+        return isset($base64fields[$table]) && in_array($field, $base64fields[$table]);
+    }
+
+    /**
+     * Decode base64-encoded serialized data to plain text for searching
+     *
+     * @param string $content Base64-encoded serialized content
+     * @return string|false Decoded plain text content, or false on failure
+     */
+    protected function decode_base64_serialized($content) {
+        try {
+            // Decode from base64
+            $decoded = base64_decode($content, true);
+            
+            if ($decoded === false) {
+                return false;
+            }
+            
+            // Unserialize PHP data
+            $unserialized = @unserialize($decoded);
+            
+            if ($unserialized === false) {
+                return false;
+            }
+            
+            // Convert to JSON for easy text searching
+            // This flattens all strings in the structure
+            $json = json_encode($unserialized);
+            
+            return $json;
+            
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Process base64-encoded serialized PHP data for search and replace
+     *
+     * @param string $content Base64-encoded serialized content
+     * @param string $searchterm Search term
+     * @param string $replacement Replacement text
+     * @param bool $casesensitive Case sensitive search
+     * @return array [modified_content, occurrences_count]
+     */
+    protected function process_base64_serialized_field($content, $searchterm, $replacement, $casesensitive = false) {
+        try {
+            // Decode from base64
+            $decoded = base64_decode($content, true);
+            
+            if ($decoded === false) {
+                // Not valid base64, try as plain serialized
+                $decoded = $content;
+            }
+            
+            // Unserialize PHP data
+            $unserialized = @unserialize($decoded);
+            
+            if ($unserialized === false) {
+                // Not serialized data, treat as regular text
+                return [$content, 0];
+            }
+            
+            $occurrences = 0;
+            $modified = false;
+            
+            // Recursively search and replace in the unserialized structure
+            $this->search_replace_recursive($unserialized, $searchterm, $replacement, $casesensitive, $occurrences, $modified);
+            
+            if ($modified) {
+                // Re-serialize and re-encode
+                $reserialized = serialize($unserialized);
+                $reencoded = base64_encode($reserialized);
+                return [$reencoded, $occurrences];
+            }
+            
+            return [$content, $occurrences];
+            
+        } catch (\Exception $e) {
+            // If anything fails, return original
+            return [$content, 0];
+        }
+    }
+
+    /**
+     * Recursively search and replace in any PHP data structure (arrays, objects, strings)
+     *
+     * @param mixed &$data Data to process (passed by reference)
+     * @param string $searchterm Search term
+     * @param string $replacement Replacement text
+     * @param bool $casesensitive Case sensitive search
+     * @param int &$occurrences Occurrence counter (passed by reference)
+     * @param bool &$modified Modified flag (passed by reference)
+     */
+    protected function search_replace_recursive(&$data, $searchterm, $replacement, $casesensitive, &$occurrences, &$modified) {
+        if (is_string($data)) {
+            // Count occurrences
+            if ($casesensitive) {
+                $count = substr_count($data, $searchterm);
+                if ($count > 0) {
+                    $data = str_replace($searchterm, $replacement, $data);
+                    $occurrences += $count;
+                    $modified = true;
+                }
+            } else {
+                $count = substr_count(strtolower($data), strtolower($searchterm));
+                if ($count > 0) {
+                    $data = str_ireplace($searchterm, $replacement, $data);
+                    $occurrences += $count;
+                    $modified = true;
+                }
+            }
+        } else if (is_array($data)) {
+            foreach ($data as $key => &$value) {
+                $this->search_replace_recursive($value, $searchterm, $replacement, $casesensitive, $occurrences, $modified);
+            }
+            unset($value); // Break reference
+        } else if (is_object($data)) {
+            // Handle objects by converting to array, processing, then back
+            $vars = get_object_vars($data);
+            foreach ($vars as $key => $value) {
+                $this->search_replace_recursive($data->$key, $searchterm, $replacement, $casesensitive, $occurrences, $modified);
+            }
+        }
+    }
+
+    /**
+     * Process JSON field content for search and replace
+     *
+     * @param string $content JSON content
+     * @param string $searchterm Search term
+     * @param string $replacement Replacement text
+     * @param bool $casesensitive Case sensitive search
+     * @return array [modified_content, occurrences_count]
+     */
+    protected function process_json_field($content, $searchterm, $replacement, $casesensitive = false) {
+        $decoded = json_decode($content, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Not valid JSON, treat as regular text
+            return [$content, 0];
+        }
+        
+        $occurrences = 0;
+        $modified = false;
+        
+        // Recursively search and replace in JSON structure
+        $this->search_replace_recursive($decoded, $searchterm, $replacement, $casesensitive, $occurrences, $modified);
+        
+        if ($modified) {
+            $newcontent = json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            return [$newcontent, $occurrences];
+        }
+        
+        return [$content, $occurrences];
     }
 
     /**
@@ -427,8 +709,45 @@ class replacer {
                 case 'question':
                     return new \moodle_url('/question/question.php', ['id' => $recordid]);
 
-                case 'edwiser_remui_pages':
+                case 'block_instances':
+                    // Check if this is an Edwiser Page Builder block
+                    $block = $DB->get_record('block_instances', ['id' => $recordid], 'pagetypepattern, subpagepattern');
+                    if ($block && ($block->pagetypepattern === 'epb-page-publish' || $block->pagetypepattern === 'epb-page-draft')) {
+                        if ($block->pagetypepattern === 'epb-page-publish') {
+                            return new \moodle_url('/local/edwiserpagebuilder/page.php', ['id' => $block->subpagepattern]);
+                        } else {
+                            return new \moodle_url('/local/edwiserpagebuilder/pagedraft.php', ['id' => $block->subpagepattern]);
+                        }
+                    }
+                    return null;
+
+                case 'edw_pages':
                     return new \moodle_url('/local/edwiserpagebuilder/page.php', ['id' => $recordid]);
+
+                case 'edw_pages_draft':
+                    return new \moodle_url('/local/edwiserpagebuilder/pagedraft.php', ['id' => $recordid]);
+
+                case 'edw_page_blocks':
+                case 'edw_page_block_layouts':
+                    return new \moodle_url('/local/edwiserpagebuilder/managepages.php');
+
+                case 'format_remuilayout':
+                    $layout = $DB->get_record('format_remuilayout', ['id' => $recordid], 'courseid, sectionid');
+                    if ($layout && $layout->courseid) {
+                        if ($layout->sectionid) {
+                            return new \moodle_url('/course/view.php', [
+                                'id' => $layout->courseid,
+                                'section' => $layout->sectionid
+                            ]);
+                        } else {
+                            return new \moodle_url('/course/view.php', ['id' => $layout->courseid]);
+                        }
+                    }
+                    return null;
+
+                case 'config_plugins':
+                    // Link to theme settings page
+                    return new \moodle_url('/admin/settings.php', ['section' => 'themesettingremui']);
 
                 default:
                     return null;
@@ -524,12 +843,75 @@ class replacer {
                     $question = $DB->get_record('question', ['id' => $recordid], 'name');
                     return $question ? "Question: {$question->name}" : "Question ID: {$recordid}";
 
-                case 'edwiser_remui_pages':
-                    $page = $DB->get_record('edwiser_remui_pages', ['id' => $recordid], 'title');
-                    if ($page) {
-                        return "Edwiser RemUI Custom Page: {$page->title}";
+                case 'block_instances':
+                    // Check if this is an Edwiser Page Builder block
+                    $block = $DB->get_record('block_instances', ['id' => $recordid], 'blockname, pagetypepattern, subpagepattern');
+                    if ($block && ($block->pagetypepattern === 'epb-page-publish' || $block->pagetypepattern === 'epb-page-draft')) {
+                        $pagetype = ($block->pagetypepattern === 'epb-page-publish') ? 'edw_pages' : 'edw_pages_draft';
+                        $page = $DB->get_record($pagetype, ['id' => $block->subpagepattern], 'pagename');
+                        if ($page) {
+                            $status = ($block->pagetypepattern === 'epb-page-publish') ? 'Published' : 'Draft';
+                            $blockname = ucwords(str_replace('_', ' ', $block->blockname));
+                            return "Edwiser Page Builder Block ({$blockname}) on {$status} Page: {$page->pagename}";
+                        }
+                        return "Edwiser Page Builder Block on Page ID: {$block->subpagepattern}";
                     }
-                    return "Edwiser RemUI Page ID: {$recordid}";
+                    return "Block ID: {$recordid}";
+
+                case 'edw_pages':
+                    $page = $DB->get_record('edw_pages', ['id' => $recordid], 'pagename, visible');
+                    if ($page) {
+                        $status = $page->visible ? '' : ' (Hidden)';
+                        return "Edwiser Page Builder - Published Page: {$page->pagename}{$status}";
+                    }
+                    return "Edwiser Published Page ID: {$recordid}";
+
+                case 'edw_pages_draft':
+                    $page = $DB->get_record('edw_pages_draft', ['id' => $recordid], 'pagename');
+                    if ($page) {
+                        return "Edwiser Page Builder - Draft Page: {$page->pagename}";
+                    }
+                    return "Edwiser Draft Page ID: {$recordid}";
+
+                case 'edw_page_blocks':
+                    $block = $DB->get_record('edw_page_blocks', ['id' => $recordid], 'title, label');
+                    if ($block) {
+                        $name = $block->title ?: $block->label;
+                        return "Edwiser Page Builder - Reusable Block: {$name}";
+                    }
+                    return "Edwiser Block ID: {$recordid}";
+
+                case 'edw_page_block_layouts':
+                    $layout = $DB->get_record('edw_page_block_layouts', ['id' => $recordid], 'title, label, belongsto');
+                    if ($layout) {
+                        $name = $layout->title ?: $layout->label;
+                        $parent = $layout->belongsto ? " (in {$layout->belongsto})" : '';
+                        return "Edwiser Page Builder - Block Layout: {$name}{$parent}";
+                    }
+                    return "Edwiser Block Layout ID: {$recordid}";
+
+                case 'format_remuilayout':
+                    $layout = $DB->get_record('format_remuilayout', ['id' => $recordid], 'courseid, sectionid');
+                    if ($layout) {
+                        $course = $DB->get_record('course', ['id' => $layout->courseid], 'fullname');
+                        $coursename = $course ? $course->fullname : "Course ID: {$layout->courseid}";
+                        if ($layout->sectionid) {
+                            $section = $DB->get_record('course_sections', ['id' => $layout->sectionid], 'name, section');
+                            $sectionname = $section ? ($section->name ?: "Section {$section->section}") : "Section ID: {$layout->sectionid}";
+                            return "Edwiser RemUI Layout: {$coursename} - {$sectionname}";
+                        }
+                        return "Edwiser RemUI Layout: {$coursename}";
+                    }
+                    return "Edwiser RemUI Layout ID: {$recordid}";
+
+                case 'config_plugins':
+                    $config = $DB->get_record('config_plugins', ['id' => $recordid], 'plugin, name');
+                    if ($config) {
+                        // Format the config name for better readability
+                        $configname = ucwords(str_replace(['_', '-'], ' ', $config->name));
+                        return "Edwiser RemUI Theme Setting: {$configname}";
+                    }
+                    return "Config ID: {$recordid}";
 
                 default:
                     return ucfirst($table) . " ID: {$recordid}";
@@ -586,11 +968,32 @@ class replacer {
 
                 $currentcontent = $record->{$field};
                 
-                // Perform replacement
-                if ($casesensitive) {
-                    $newcontent = str_replace($searchterm, $replacementtext, $currentcontent);
+                // Check if this is a base64-encoded serialized field (block_instances configdata)
+                if ($this->is_base64_serialized_field($table, $field)) {
+                    // Process base64-encoded serialized PHP data
+                    list($newcontent, $occurrences) = $this->process_base64_serialized_field(
+                        $currentcontent,
+                        $searchterm,
+                        $replacementtext,
+                        $casesensitive
+                    );
+                } else if ($this->is_json_field($table, $field)) {
+                    // Process JSON field
+                    list($newcontent, $occurrences) = $this->process_json_field(
+                        $currentcontent, 
+                        $searchterm, 
+                        $replacementtext, 
+                        $casesensitive
+                    );
                 } else {
-                    $newcontent = str_ireplace($searchterm, $replacementtext, $currentcontent);
+                    // Perform standard replacement
+                    if ($casesensitive) {
+                        $newcontent = str_replace($searchterm, $replacementtext, $currentcontent);
+                        $occurrences = substr_count($currentcontent, $searchterm);
+                    } else {
+                        $newcontent = str_ireplace($searchterm, $replacementtext, $currentcontent);
+                        $occurrences = substr_count(strtolower($currentcontent), strtolower($searchterm));
+                    }
                 }
 
                 // Check if anything changed
@@ -598,13 +1001,6 @@ class replacer {
                     $this->add_output("No changes needed (text not found)", 'info');
                     $this->add_replacement_log($table, $field, $id, 'skipped', 'Text not found in current content');
                     continue;
-                }
-
-                // Count occurrences replaced
-                if ($casesensitive) {
-                    $occurrences = substr_count($currentcontent, $searchterm);
-                } else {
-                    $occurrences = substr_count(strtolower($currentcontent), strtolower($searchterm));
                 }
 
                 if (!$dryrun) {

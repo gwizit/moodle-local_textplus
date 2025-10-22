@@ -42,6 +42,7 @@ Complete Moodle 4.3+ plugin with:
 - ✅ Safe dry run mode
 - ✅ Complete documentation
 - ✅ GDPR compliance
+- ✅ **Edwiser Page Builder support** (base64-encoded content)
 - ✅ Attribution to G Wiz IT Solutions
 
 See `textplus/README.md` for complete documentation.

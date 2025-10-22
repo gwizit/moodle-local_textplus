@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_textplus';
-$plugin->version = 2025102102;  // YYYYMMDDXX format.
+$plugin->version = 2025102201;  // YYYYMMDDXX format.
 $plugin->requires = 2023042400; // Moodle 4.3 minimum version.
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v1.0.2';
+$plugin->release = 'v1.0.1';
