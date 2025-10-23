@@ -143,3 +143,31 @@ $string['eventtextreplaced'] = 'Text replaced';
 // Credits.
 $string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank">G Wiz IT Solutions</a> | <a href="https://square.link/u/9SpmIaIW" target="_blank">💝 Support This Project</a>';
 $string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> Please consider <a href="https://square.link/u/9SpmIaIW" target="_blank">making a donation</a> to help us maintain and improve this plugin. Your support keeps this project alive!';
+
+// Edwiser Page Builder strings.
+$string['edwiser_detected_published'] = 'Edwiser Page Builder detected - including published pages';
+$string['edwiser_detected_drafts'] = 'Edwiser Page Builder drafts detected - including draft pages';
+$string['edwiser_detected_blocks'] = 'Edwiser Page Builder blocks detected - including reusable blocks';
+$string['edwiser_detected_layouts'] = 'Edwiser Page Builder block layouts detected - including block card layouts';
+$string['edwiser_remui_format'] = 'Edwiser RemUI Format detected - including layout pages';
+$string['edwiser_remui_theme'] = 'Edwiser RemUI Theme detected - including theme configuration content';
+$string['edwiser_content_blocks'] = 'Edwiser Page Builder content blocks will be searched in block_instances table';
+$string['edwiser_blocks_searched'] = 'Searched {$a->total} Edwiser blocks, found {$a->matches} matches';
+$string['searching_database'] = 'Searching Moodle database for text content...';
+$string['searching_table_field'] = 'Searching {$a->table}.{$a->field}...';
+$string['found_items_database'] = 'Found {$a} matching items in database';
+$string['error_searching_database'] = 'Error searching database: {$a}';
+$string['error_no_searchterm'] = 'Error: No search term provided';
+
+// Processing strings.
+$string['processing_mode'] = '{$a}: Processing {$a->count} items...';
+$string['processing_search_replace'] = 'Search: \'{$a->search}\' → Replace: \'{$a->replace}\'';
+$string['processing_item'] = 'Processing item {$a->current}/{$a->total}';
+$string['processing_location'] = 'Location: {$a->table}.{$a->field} (ID: {$a->id})';
+$string['processing_noitems'] = 'No items to process';
+$string['processing_error_notfound'] = 'Error: Record not found';
+$string['processing_nochanges'] = 'No changes needed (text not found)';
+$string['processing_replaced'] = '✓ Replaced {$a} occurrence(s)';
+$string['processing_would_replace'] = '✓ Would replace {$a} occurrence(s) (DRY RUN)';
+$string['processing_error'] = 'Error: {$a}';
+$string['processing_completed'] = 'Completed: {$a->replaced} items processed, {$a->failed} failed';

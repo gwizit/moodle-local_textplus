@@ -80,13 +80,13 @@ class replacer {
     public function find_text_in_database() {
         global $DB, $CFG;
 
-        $this->add_output("Searching Moodle database for text content...", 'info');
+        $this->add_output(get_string('searching_database', 'local_textplus'), 'info');
 
         $searchterm = $this->config['search_term'];
         $casesensitive = isset($this->config['case_sensitive']) ? $this->config['case_sensitive'] : false;
         
         if (empty($searchterm)) {
-            $this->add_output("Error: No search term provided", 'error');
+            $this->add_output(get_string('error_no_searchterm', 'local_textplus'), 'error');
             return [];
         }
 
@@ -134,41 +134,41 @@ class replacer {
 
         // Check if Edwiser Page Builder is installed and add its tables
         if ($DB->get_manager()->table_exists('edw_pages')) {
-            $this->add_output("Edwiser Page Builder detected - including published pages", 'info');
+            $this->add_output(get_string('edwiser_detected_published', 'local_textplus'), 'info');
             $searchtables['edw_pages'] = ['pagename', 'pagedesc', 'pagecontent', 'seotag', 'seodesc'];
             
             // IMPORTANT: Edwiser pages store their content in block_instances!
             // We need to search block_instances where pagetypepattern = 'epb-page-publish'
-            $this->add_output("Edwiser Page Builder content blocks will be searched in block_instances table", 'info');
+            $this->add_output(get_string('edwiser_content_blocks', 'local_textplus'), 'info');
         }
 
         // Check if Edwiser Page Builder draft table exists
         if ($DB->get_manager()->table_exists('edw_pages_draft')) {
-            $this->add_output("Edwiser Page Builder drafts detected - including draft pages", 'info');
+            $this->add_output(get_string('edwiser_detected_drafts', 'local_textplus'), 'info');
             $searchtables['edw_pages_draft'] = ['pagename', 'pagedesc', 'pagecontent', 'seotag', 'seodesc'];
         }
 
         // Check if Edwiser Page Builder blocks table exists
         if ($DB->get_manager()->table_exists('edw_page_blocks')) {
-            $this->add_output("Edwiser Page Builder blocks detected - including reusable blocks", 'info');
+            $this->add_output(get_string('edwiser_detected_blocks', 'local_textplus'), 'info');
             $searchtables['edw_page_blocks'] = ['title', 'label', 'content'];
         }
 
         // Check if Edwiser Page Builder block layouts table exists
         if ($DB->get_manager()->table_exists('edw_page_block_layouts')) {
-            $this->add_output("Edwiser Page Builder block layouts detected - including block card layouts", 'info');
+            $this->add_output(get_string('edwiser_detected_layouts', 'local_textplus'), 'info');
             $searchtables['edw_page_block_layouts'] = ['title', 'label', 'content'];
         }
 
         // Check if Edwiser RemUI Format is installed (stores page layouts in JSON)
         if ($DB->get_manager()->table_exists('format_remuilayout')) {
-            $this->add_output("Edwiser RemUI Format detected - including layout pages", 'info');
+            $this->add_output(get_string('edwiser_remui_format', 'local_textplus'), 'info');
             $searchtables['format_remuilayout'] = ['layoutdata'];
         }
 
         // Check if Edwiser RemUI theme is installed (stores content in config_plugins table)
         if ($DB->record_exists('config_plugins', ['plugin' => 'theme_remui'])) {
-            $this->add_output("Edwiser RemUI Theme detected - including theme configuration content", 'info');
+            $this->add_output(get_string('edwiser_remui_theme', 'local_textplus'), 'info');
             // Note: config_plugins table will be searched with special handling for plugin='theme_remui'
             $searchtables['config_plugins'] = ['value'];
         }
@@ -186,7 +186,8 @@ class replacer {
                         continue;
                     }
 
-                    $this->add_output("Searching {$table}.{$field}...", 'info');
+                    $this->add_output(get_string('searching_table_field', 'local_textplus', 
+                        (object)['table' => $table, 'field' => $field]), 'info');
 
                     // Build SQL based on case sensitivity and table-specific requirements
                     if ($table === 'config_plugins') {
@@ -224,25 +225,39 @@ class replacer {
                         // Now decode and search each one
                         $records = [];
                         foreach ($allrecords as $record) {
-                            $decoded = $this->decode_base64_serialized($record->content);
-                            if ($decoded !== false) {
-                                // Search in decoded content
+                            // Decode to JSON for searching
+                            $decoded_json = $this->decode_base64_serialized($record->content, false);
+                            if ($decoded_json !== false) {
+                                // Search in decoded JSON content
                                 $found = false;
                                 if ($casesensitive) {
-                                    $found = (strpos($decoded, $searchterm) !== false);
+                                    $found = (strpos($decoded_json, $searchterm) !== false);
                                 } else {
-                                    $found = (stripos($decoded, $searchterm) !== false);
+                                    $found = (stripos($decoded_json, $searchterm) !== false);
                                 }
                                 
                                 if ($found) {
-                                    // Store the decoded content for snippet generation
-                                    $record->decoded_content = $decoded;
+                                    // Extract actual HTML for snippet display
+                                    $decoded_html = $this->decode_base64_serialized($record->content, true);
+                                    
+                                    // Store BOTH: JSON for finding occurrences, HTML for display preference
+                                    // We'll use whichever one contains the search term
+                                    if ($casesensitive) {
+                                        $html_has_match = (strpos($decoded_html, $searchterm) !== false);
+                                    } else {
+                                        $html_has_match = (stripos($decoded_html, $searchterm) !== false);
+                                    }
+                                    
+                                    // Use HTML if it contains the match, otherwise use JSON
+                                    $record->decoded_content = $html_has_match ? $decoded_html : $decoded_json;
+                                    
                                     $records[] = $record;
                                 }
                             }
                         }
                         
-                        $this->add_output("Searched " . count($allrecords) . " Edwiser blocks, found " . count($records) . " matches", 'info');
+                        $this->add_output(get_string('edwiser_blocks_searched', 'local_textplus',
+                            (object)['total' => count($allrecords), 'matches' => count($records)]), 'info');
                     } else {
                         // Standard search for other tables
                         if ($casesensitive) {
@@ -255,9 +270,10 @@ class replacer {
                                     WHERE " . $DB->sql_like($field, ':searchterm', false, false);
                         }
                         $params = ['searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'];
+                        
+                        // Execute the SQL query for non-Edwiser tables
+                        $records = $DB->get_records_sql($sql, $params);
                     }
-                    
-                    $records = $DB->get_records_sql($sql, $params);
 
                     foreach ($records as $record) {
                         // For Edwiser blocks, use decoded content for snippets
@@ -290,13 +306,13 @@ class replacer {
                 }
             }
 
-            $this->add_output("Found " . count($items) . " matching items in database", 'success');
+            $this->add_output(get_string('found_items_database', 'local_textplus', count($items)), 'success');
             $this->stats['items_found'] = count($items);
 
             return $items;
 
         } catch (\Exception $e) {
-            $this->add_output("Error searching database: " . $e->getMessage(), 'error');
+            $this->add_output(get_string('error_searching_database', 'local_textplus', $e->getMessage()), 'error');
             return [];
         }
     }
@@ -339,9 +355,10 @@ class replacer {
      * Decode base64-encoded serialized data to plain text for searching
      *
      * @param string $content Base64-encoded serialized content
+     * @param bool $extract_html If true, extract actual HTML content from Edwiser structure
      * @return string|false Decoded plain text content, or false on failure
      */
-    protected function decode_base64_serialized($content) {
+    protected function decode_base64_serialized($content, $extract_html = false) {
         try {
             // Decode from base64
             $decoded = base64_decode($content, true);
@@ -357,6 +374,11 @@ class replacer {
                 return false;
             }
             
+            // If we need to extract HTML for snippet display
+            if ($extract_html) {
+                return $this->extract_html_from_edwiser_block($unserialized);
+            }
+            
             // Convert to JSON for easy text searching
             // This flattens all strings in the structure
             $json = json_encode($unserialized);
@@ -366,6 +388,36 @@ class replacer {
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Extract HTML content from Edwiser block structure for display
+     *
+     * @param object $data Unserialized Edwiser block data
+     * @return string Extracted HTML content
+     */
+    protected function extract_html_from_edwiser_block($data) {
+        $html = '';
+        
+        // Edwiser blocks typically have: html->text, css->text, js->text
+        if (isset($data->html) && is_array($data->html) && isset($data->html['text'])) {
+            $html .= $data->html['text'];
+        }
+        
+        if (isset($data->css) && is_array($data->css) && isset($data->css['text'])) {
+            $html .= "\n\n/* CSS */\n" . $data->css['text'];
+        }
+        
+        if (isset($data->js) && is_array($data->js) && isset($data->js['text'])) {
+            $html .= "\n\n/* JavaScript */\n" . $data->js['text'];
+        }
+        
+        // If no content was extracted, return JSON representation as fallback
+        if (empty($html)) {
+            $html = json_encode($data, JSON_PRETTY_PRINT);
+        }
+        
+        return $html;
     }
 
     /**
@@ -931,7 +983,7 @@ class replacer {
         global $DB;
 
         if (empty($items)) {
-            $this->add_output("No items to process", 'warning');
+            $this->add_output(get_string('processing_noitems', 'local_textplus'), 'warning');
             return true;
         }
 
@@ -941,8 +993,10 @@ class replacer {
         $dryrun = $this->config['dry_run'];
 
         $mode = $dryrun ? 'DRY RUN' : 'EXECUTE';
-        $this->add_output("\n{$mode}: Processing " . count($items) . " items...", 'info');
-        $this->add_output("Search: '{$searchterm}' → Replace: '{$replacementtext}'", 'info');
+        $this->add_output("\n{$mode}: " . get_string('processing_mode', 'local_textplus', 
+            (object)['count' => count($items)]), 'info');
+        $this->add_output(get_string('processing_search_replace', 'local_textplus',
+            (object)['search' => $searchterm, 'replace' => $replacementtext]), 'info');
 
         foreach ($items as $index => $item) {
             $this->stats['items_found']++;
@@ -952,15 +1006,17 @@ class replacer {
             $field = is_array($item) ? $item['field'] : $item->field;
             $id = is_array($item) ? $item['id'] : $item->id;
             
-            $this->add_output("\nProcessing item " . ($index + 1) . "/" . count($items), 'info');
-            $this->add_output("Location: {$table}.{$field} (ID: {$id})", 'info');
+            $this->add_output("\n" . get_string('processing_item', 'local_textplus',
+                (object)['current' => $index + 1, 'total' => count($items)]), 'info');
+            $this->add_output(get_string('processing_location', 'local_textplus',
+                (object)['table' => $table, 'field' => $field, 'id' => $id]), 'info');
 
             try {
                 // Get current content
                 $record = $DB->get_record($table, ['id' => $id], 'id, ' . $field);
                 
                 if (!$record) {
-                    $this->add_output("Error: Record not found", 'error');
+                    $this->add_output(get_string('processing_error_notfound', 'local_textplus'), 'error');
                     $this->stats['items_failed']++;
                     $this->add_replacement_log($table, $field, $id, 'failed', 'Record not found');
                     continue;
@@ -998,7 +1054,7 @@ class replacer {
 
                 // Check if anything changed
                 if ($currentcontent === $newcontent) {
-                    $this->add_output("No changes needed (text not found)", 'info');
+                    $this->add_output(get_string('processing_nochanges', 'local_textplus'), 'info');
                     $this->add_replacement_log($table, $field, $id, 'skipped', 'Text not found in current content');
                     continue;
                 }
@@ -1011,23 +1067,24 @@ class replacer {
                     
                     $DB->update_record($table, $updaterecord);
                     
-                    $this->add_output("✓ Replaced {$occurrences} occurrence(s)", 'success');
+                    $this->add_output(get_string('processing_replaced', 'local_textplus', $occurrences), 'success');
                     $this->stats['items_replaced']++;
                     $this->add_replacement_log($table, $field, $id, 'success', "Replaced {$occurrences} occurrence(s)");
                 } else {
-                    $this->add_output("✓ Would replace {$occurrences} occurrence(s) (DRY RUN)", 'info');
+                    $this->add_output(get_string('processing_would_replace', 'local_textplus', $occurrences), 'info');
                     $this->stats['items_replaced']++;
                     $this->add_replacement_log($table, $field, $id, 'preview', "Would replace {$occurrences} occurrence(s)");
                 }
 
             } catch (\Exception $e) {
-                $this->add_output("Error: " . $e->getMessage(), 'error');
+                $this->add_output(get_string('processing_error', 'local_textplus', $e->getMessage()), 'error');
                 $this->stats['items_failed']++;
                 $this->add_replacement_log($table, $field, $id, 'failed', $e->getMessage());
             }
         }
 
-        $this->add_output("\nCompleted: {$this->stats['items_replaced']} items processed, {$this->stats['items_failed']} failed", 'success');
+        $this->add_output("\n" . get_string('processing_completed', 'local_textplus',
+            (object)['replaced' => $this->stats['items_replaced'], 'failed' => $this->stats['items_failed']]), 'success');
 
         return true;
     }
