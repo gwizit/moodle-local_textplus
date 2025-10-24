@@ -427,7 +427,7 @@ if ($step == 2 && !empty($wizard_data)) {
             ['class' => 'lead']);
         
         // Database items section.
-        if (!empty($databaseitems)) {
+        if (!empty($database_items)) {
             echo html_writer::div(
                 get_string('databaseitems', 'local_textplus'),
                 'section-header'
