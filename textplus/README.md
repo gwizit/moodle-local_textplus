@@ -4,13 +4,13 @@ This powerful Moodle plugin helps administrators search and selectively replace 
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** 1.0.5  
+**Version:** 3.0.5  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
 ---
 
-## What's New in Version 1.0.5
+## What's New in Version 3.0.5
 
 ### 🏗️ Modern Architecture Refactoring
 - **Mustache Templates** - Complete separation of presentation from logic

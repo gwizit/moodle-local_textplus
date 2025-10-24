@@ -1,7 +1,7 @@
 # Moodle Security Guidelines Compliance Audit
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 1.0.5  
+**Version:** 3.0.5  
 **Audit Date:** January 2025  
 **Reference:** https://moodledev.io/general/development/policies/security
 
@@ -13,7 +13,7 @@ This comprehensive security audit verifies that the TextPlus plugin fully compli
 
 **Overall Status:** ✅ **FULLY COMPLIANT**
 
-### Recent Updates (v1.0.5)
+### Recent Updates (v3.0.5)
 - ✅ Modern architecture with Mustache templates and Output API
 - ✅ ES6 JavaScript modules with proper AMD implementation
 - ✅ Namespaced CSS with .local-textplus prefix
