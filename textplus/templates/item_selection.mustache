@@ -23,32 +23,14 @@
     * form_action - Form action URL
     * sesskey - Session key
     * select_items_message - Message prompting user to select items
+    * database_header - Database section header  
     * has_items - Boolean if items exist
-    * items - Array of database items
+    * items - Array of database items with occurrences
     * select_all_label - Select all button label
     * deselect_all_label - Deselect all button label
     * warning_text - Warning text for select all
     * back_label - Back button label
     * next_label - Next button label
-    * total_occurrences - Total number of occurrences found
-
-    Example context (json):
-    {
-        "form_action": "/local/textplus/index.php",
-        "sesskey": "abc123",
-        "select_items_message": "Select items to process",
-        "has_items": true,
-        "items": [
-            {
-                "item_id": 123,
-                "checkbox_id": "item_123",
-                "table_name": "course",
-                "field_name": "summary",
-                "occurrence_count": 5,
-                "preview_text": "Sample text..."
-            }
-        ]
-    }
 }}
 
 <div class="local-textplus-item-selection">
@@ -59,9 +41,7 @@
         <p class="lead">{{select_items_message}}</p>
 
         {{#has_items}}
-        <div class="local-textplus-stats">
-            <strong>{{#str}}totaloccurrences, local_textplus{{/str}}:</strong> {{total_occurrences}}
-        </div>
+        <div class="local-textplus-section-header">{{database_header}}</div>
 
         <div class="local-textplus-select-all-btn">
             <a href="#" id="local-textplus-select-all" class="btn btn-sm btn-secondary">{{select_all_label}}</a>
@@ -70,20 +50,26 @@
         <div class="local-textplus-item-list">
             {{#items}}
             <div class="local-textplus-item-container">
-                <input type="checkbox" name="database_items[]" value="{{item_id}}" class="local-textplus-item-checkbox" id="{{checkbox_id}}">
+                <input type="checkbox" name="database_items[]" value="{{item_key}}" class="local-textplus-item-checkbox" id="{{checkbox_id}}">
                 <label for="{{checkbox_id}}" class="local-textplus-item-label">
                     <div class="local-textplus-item-header">
-                        <strong>{{table_name}}</strong> → {{field_name}}
-                        <span class="badge badge-primary">{{occurrence_count}} {{#str}}occurrences, local_textplus{{/str}}</span>
+                        {{#has_url}}
+                        <a href="{{url}}" target="_blank" onclick="event.stopPropagation();">{{location}}</a>
+                        {{/has_url}}
+                        {{^has_url}}
+                        {{location}}
+                        {{/has_url}}
                     </div>
-                    <div class="local-textplus-item-preview">
-                        {{preview_text}}
-                    </div>
+                    <div class="local-textplus-item-table">{{table_info}}</div>
                     {{#has_occurrences}}
-                    <div class="local-textplus-item-actions">
-                        <a href="#" class="local-textplus-view-occurrences" data-item-id="{{item_id}}">
-                            {{#str}}viewoccurrences, local_textplus{{/str}}
-                        </a>
+                    <div class="local-textplus-item-occurrences">
+                        <strong>{{occurrence_count}} occurrence{{occurrence_plural}}: </strong>
+                        {{#occurrences}}
+                        <a href="#" class="local-textplus-occurrence-link" 
+                           data-context="{{context}}"
+                           data-match="{{match}}"
+                           data-location="{{location}}">#{{number}}</a>
+                        {{/occurrences}}
                     </div>
                     {{/has_occurrences}}
                 </label>
@@ -102,18 +88,23 @@
 <!-- Occurrence modal -->
 <div id="local-textplus-occurrence-modal" class="local-textplus-occurrence-modal">
     <div class="local-textplus-occurrence-modal-content">
-        <span class="local-textplus-occurrence-modal-close">&times;</span>
-        <h3 id="local-textplus-occurrence-modal-title"></h3>
-        <div id="local-textplus-occurrence-modal-body"></div>
+        <div class="local-textplus-occurrence-modal-header">
+            <h3 id="local-textplus-occurrence-modal-title">Code Snippet</h3>
+            <button type="button" class="local-textplus-occurrence-modal-close">&times;</button>
+        </div>
+        <div class="local-textplus-occurrence-modal-body">
+            <div id="local-textplus-occurrence-modal-body-content" class="local-textplus-occurrence-code"></div>
+        </div>
     </div>
 </div>
 
 {{#js}}
-require(['local_textplus/item_selection'], function(ItemSelection) {
+require(['local_textplus/item_selection', 'local_textplus/occurrence_modal'], function(ItemSelection, OccurrenceModal) {
     ItemSelection.init({
         selectAllText: '{{select_all_label}}',
         deselectAllText: '{{deselect_all_label}}',
         warningText: '{{warning_text}}'
     });
+    OccurrenceModal.init();
 });
 {{/js}}

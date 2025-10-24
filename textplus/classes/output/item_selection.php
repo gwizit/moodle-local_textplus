@@ -44,9 +44,6 @@ class item_selection implements renderable, templatable {
     /** @var string Search term */
     protected $search_term;
 
-    /** @var int Total occurrences */
-    protected $total_occurrences;
-
     /**
      * Constructor.
      *
@@ -56,19 +53,6 @@ class item_selection implements renderable, templatable {
     public function __construct($database_items, $search_term = '') {
         $this->database_items = $database_items;
         $this->search_term = $search_term;
-        $this->calculate_total_occurrences();
-    }
-
-    /**
-     * Calculate total occurrences across all items.
-     */
-    protected function calculate_total_occurrences() {
-        $this->total_occurrences = 0;
-        foreach ($this->database_items as $item) {
-            if (isset($item->occurrence_count)) {
-                $this->total_occurrences += $item->occurrence_count;
-            }
-        }
     }
 
     /**
@@ -85,28 +69,65 @@ class item_selection implements renderable, templatable {
         $data->form_action = $PAGE->url->out(false);
         $data->sesskey = sesskey();
         $data->select_items_message = get_string('selectitemstoreplace', 'local_textplus');
-        $data->total_occurrences = $this->total_occurrences;
+        $data->database_header = get_string('databaseitems', 'local_textplus');
 
         // Database items.
         $data->has_items = !empty($this->database_items);
         if ($data->has_items) {
             $data->items = [];
-            foreach ($this->database_items as $item) {
-                $preview_text = '';
-                if (isset($item->preview) && !empty($item->preview)) {
-                    $preview_text = shorten_text(s($item->preview), 200);
+            foreach ($this->database_items as $item_index => $item) {
+                // Handle both object and array formats (session serialization may vary).
+                $table = is_object($item) ? $item->table : $item['table'];
+                $field = is_object($item) ? $item->field : $item['field'];
+                $id = is_object($item) ? $item->id : $item['id'];
+                $location = is_object($item) ? $item->location : $item['location'];
+                $url = is_object($item) ? 
+                    (isset($item->url) ? $item->url : null) : 
+                    (isset($item['url']) ? $item['url'] : null);
+                $occurrences = is_object($item) ? 
+                    (isset($item->occurrences) ? $item->occurrences : []) : 
+                    (isset($item['occurrences']) ? $item['occurrences'] : []);
+                
+                // Create unique item key for checkbox value (format: table|id|field).
+                $item_key = s($table) . '|' . (int)$id . '|' . s($field);
+                $checkbox_id = 'item_' . md5($item_key);
+                
+                // Prepare occurrence data.
+                $occurrence_data = [];
+                if (!empty($occurrences) && is_array($occurrences)) {
+                    foreach ($occurrences as $occ_index => $occurrence) {
+                        $context_data = is_array($occurrence) ? 
+                            (isset($occurrence['context']) ? $occurrence['context'] : '') :
+                            (isset($occurrence->context) ? $occurrence->context : '');
+                        $match_data = is_array($occurrence) ? 
+                            (isset($occurrence['match']) ? $occurrence['match'] : '') :
+                            (isset($occurrence->match) ? $occurrence->match : '');
+                        
+                        // Skip empty contexts.
+                        if (empty($context_data)) {
+                            continue;
+                        }
+                        
+                        $occurrence_data[] = [
+                            'number' => $occ_index + 1,
+                            'context' => base64_encode($context_data),
+                            'match' => base64_encode($match_data),
+                            'location' => base64_encode($location)
+                        ];
+                    }
                 }
-
-                $occurrence_count = isset($item->occurrence_count) ? (int)$item->occurrence_count : 0;
-
+                
                 $data->items[] = [
-                    'item_id' => $item->id ?? 0,
-                    'checkbox_id' => 'item_' . ($item->id ?? 0),
-                    'table_name' => s($item->table_name ?? ''),
-                    'field_name' => s($item->field_name ?? ''),
-                    'occurrence_count' => $occurrence_count,
-                    'preview_text' => $preview_text,
-                    'has_occurrences' => $occurrence_count > 0
+                    'item_key' => $item_key,
+                    'checkbox_id' => $checkbox_id,
+                    'location' => s($location),
+                    'url' => $url,
+                    'has_url' => !empty($url),
+                    'table_info' => s($table) . '.' . s($field) . ' (ID: ' . (int)$id . ')',
+                    'has_occurrences' => !empty($occurrence_data),
+                    'occurrence_count' => count($occurrence_data),
+                    'occurrence_plural' => count($occurrence_data) > 1 ? 's' : '',
+                    'occurrences' => $occurrence_data
                 ];
             }
         }
