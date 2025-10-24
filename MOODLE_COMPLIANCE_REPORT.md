@@ -1,8 +1,8 @@
 # Moodle Plugin Contribution Checklist Compliance Report
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 1.0.1  
-**Date:** October 21, 2025  
+**Version:** 1.0.5  
+**Date:** January 2025  
 **Developer:** G Wiz IT Solutions
 
 This document confirms compliance with the Moodle Plugin Contribution Checklist as outlined at:
@@ -29,12 +29,12 @@ https://moodledev.io/general/community/plugincontribution/checklist
 
 ### Source Control URL
 - **Repository:** ✅ GitHub repository available
-- **URL:** https://github.com/GrahamPECS/textplus
+- **URL:** https://github.com/gwizit/moodle-local_textplus
 - **Public Access:** ✅ Publicly accessible
 
 ### Bug Tracker URL
 - **Tracker:** ✅ GitHub Issues available
-- **URL:** https://github.com/GrahamPECS/textplus/issues
+- **URL:** https://github.com/gwizit/moodle-local_textplus/issues
 
 ### Documentation URL
 - **Documentation:** ✅ README.md and TROUBLESHOOTING.md included
@@ -186,7 +186,7 @@ https://moodledev.io/general/community/plugincontribution/checklist
 
 ### 1. Public Issue Tracker
 - **Status:** ✅ COMPLIANT
-- **Details:** GitHub Issues available at https://github.com/GrahamPECS/textplus/issues
+- **Details:** GitHub Issues available at https://github.com/gwizit/moodle-local_textplus/issues
 
 ### 2. PostgreSQL Compatibility
 - **Status:** ✅ COMPLIANT
@@ -285,5 +285,5 @@ The **TextPlus** plugin (local_textplus) is **FULLY COMPLIANT** with the Moodle 
 ---
 
 **Verified by:** Development Team  
-**Date:** October 21, 2025  
-**Version Verified:** 1.0.1
+**Date:** January 2025  
+**Version Verified:** 1.0.5

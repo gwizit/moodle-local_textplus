@@ -1,8 +1,8 @@
 # Moodle Security Guidelines Compliance Audit
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 1.0.3  
-**Audit Date:** October 24, 2025  
+**Version:** 1.0.5  
+**Audit Date:** January 2025  
 **Reference:** https://moodledev.io/general/development/policies/security
 
 ---
@@ -13,11 +13,13 @@ This comprehensive security audit verifies that the TextPlus plugin fully compli
 
 **Overall Status:** ✅ **FULLY COMPLIANT**
 
-### Recent Updates (v1.0.3)
-- ✅ Migrated from direct `$SESSION` usage to Moodle's Cache API
-- ✅ Implements session-based caching for wizard state data
+### Recent Updates (v1.0.5)
+- ✅ Modern architecture with Mustache templates and Output API
+- ✅ ES6 JavaScript modules with proper AMD implementation
+- ✅ Namespaced CSS with .local-textplus prefix
+- ✅ Fixed deprecated print_error() usage
+- ✅ Implements proper template separation
 - ✅ Follows Moodle coding standards and best practices
-- ✅ Reference: https://moodledev.io/docs/5.0/apis/subsystems/muc
 
 ---
 
