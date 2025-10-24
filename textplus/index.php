@@ -27,10 +27,10 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 /**
- * Helper function to extract form data from session wizard data
+ * Helper function to extract form data from wizard data
  * Only includes scalar values - excludes arrays which cause form errors
  *
- * @param stdClass $wizarddata Session wizard data
+ * @param stdClass $wizarddata Wizard data from cache
  * @return stdClass Form data with only scalar values
  */
 function get_form_data_from_wizard($wizarddata) {
@@ -39,7 +39,7 @@ function get_form_data_from_wizard($wizarddata) {
     $formdata->casesensitive = $wizarddata->casesensitive;
     $formdata->executionmode = $wizarddata->executionmode;
     $formdata->replacementtext = $wizarddata->replacementtext;
-    // Note: databaseitems and selecteditems are NOT included - they stay in session only
+    // Note: databaseitems and selecteditems are NOT included - they stay in cache only
     return $formdata;
 }
 
@@ -72,6 +72,9 @@ $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('pluginname', 'local_textplus'));
 $PAGE->set_heading(get_string('heading', 'local_textplus'));
 
+// Initialize cache for wizard data.
+$cache = cache::make('local_textplus', 'wizarddata');
+
 // Get default settings.
 $defaultsearchterm = get_config('local_textplus', 'defaultsearchterm');
 $defaultmode = get_config('local_textplus', 'defaultmode');
@@ -90,27 +93,29 @@ $backbtn = optional_param('backbtn', '', PARAM_RAW);
 $nextbtn = optional_param('nextbtn', '', PARAM_RAW);
 $executebtn = optional_param('executebtn', '', PARAM_RAW);
 
-// Handle "Start Over" by clearing session.
+// Handle "Start Over" by clearing cache.
 $startover = optional_param('startover', '', PARAM_RAW);
 if ($startover) {
-    unset($SESSION->textplus_wizard);
+    $cache->delete('wizard');
     redirect($PAGE->url);
 }
 
-// Initialize or retrieve session data.
-if (!isset($SESSION->textplus_wizard)) {
-    $SESSION->textplus_wizard = new stdClass();
-    $SESSION->textplus_wizard->searchterm = $defaultsearchterm;
-    $SESSION->textplus_wizard->casesensitive = 0;
-    $SESSION->textplus_wizard->executionmode = $defaultmode;
-    $SESSION->textplus_wizard->replacementtext = '';
-    $SESSION->textplus_wizard->databaseitems = [];
-    $SESSION->textplus_wizard->selecteditems = [];
+// Initialize or retrieve wizard data from cache.
+$wizarddata = $cache->get('wizard');
+if (!$wizarddata) {
+    $wizarddata = new stdClass();
+    $wizarddata->searchterm = $defaultsearchterm;
+    $wizarddata->casesensitive = 0;
+    $wizarddata->executionmode = $defaultmode;
+    $wizarddata->replacementtext = '';
+    $wizarddata->databaseitems = [];
+    $wizarddata->selecteditems = [];
+    $cache->set('wizard', $wizarddata);
 }
 
 // Prepare form custom data.
 // Only pass scalar values to form - arrays cause htmlspecialchars errors
-$formdata = get_form_data_from_wizard($SESSION->textplus_wizard);
+$formdata = get_form_data_from_wizard($wizarddata);
 
 $customdata = [
     'formdata' => $formdata,
@@ -148,13 +153,15 @@ if ($step == 2 && $nextbtn) {
         }
     }
     
-    // Save validated selections.
-    $SESSION->textplus_wizard->selecteditems = $validatedselections;
+    // Save validated selections to cache.
+    $wizarddata = $cache->get('wizard');
+    $wizarddata->selecteditems = $validatedselections;
+    $cache->set('wizard', $wizarddata);
     
     // Move to step 3.
     $step = 3;
     $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
+    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
     
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
@@ -163,8 +170,9 @@ if ($step == 2 && $nextbtn) {
 if ($step == 2 && $backbtn) {
     require_sesskey();
     $step = 1;
+    $wizarddata = $cache->get('wizard');
     $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
+    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
 
@@ -172,8 +180,9 @@ if ($step == 2 && $backbtn) {
 if ($step == 3 && $backbtn) {
     require_sesskey();
     $step = 2;
+    $wizarddata = $cache->get('wizard');
     $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
+    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
     $mform = new \local_textplus\form\replacer_form(null, $customdata);
 }
 
@@ -190,9 +199,10 @@ if ($fromform = $mform->get_data()) {
     if ($step == 1 && !$backbtn) {
         require_capability('local/textplus:manage', context_system::instance());
         
-        // Save search criteria to session (already sanitized by moodle form).
-        $SESSION->textplus_wizard->searchterm = $fromform->searchterm;
-        $SESSION->textplus_wizard->casesensitive = isset($fromform->casesensitive) ? $fromform->casesensitive : 0;
+        // Save search criteria to cache (already sanitized by moodle form).
+        $wizarddata = $cache->get('wizard');
+        $wizarddata->searchterm = $fromform->searchterm;
+        $wizarddata->casesensitive = isset($fromform->casesensitive) ? $fromform->casesensitive : 0;
         
         $config = [
             'search_term' => $fromform->searchterm,
@@ -203,13 +213,14 @@ if ($fromform = $mform->get_data()) {
         $replacer = new \local_textplus\replacer($config);
         $databaseitems = $replacer->find_text_in_database();
         
-        // Store found database items in session.
-        $SESSION->textplus_wizard->databaseitems = $databaseitems;
+        // Store found database items in cache.
+        $wizarddata->databaseitems = $databaseitems;
+        $cache->set('wizard', $wizarddata);
         
         // Move to step 2.
         $step = 2;
         $customdata['step'] = $step;
-        $customdata['formdata'] = get_form_data_from_wizard($SESSION->textplus_wizard);
+        $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
         $mform = new \local_textplus\form\replacer_form(null, $customdata);
         
     // STEP 3: Execute text replacement
@@ -228,9 +239,13 @@ if ($fromform = $mform->get_data()) {
                 null, \core\output\notification::NOTIFY_ERROR);
         }
         
+        // Get wizard data from cache.
+        $wizarddata = $cache->get('wizard');
+        
         // Save final options (already sanitized by form).
-        $SESSION->textplus_wizard->executionmode = $fromform->executionmode;
-        $SESSION->textplus_wizard->replacementtext = $fromform->replacementtext;
+        $wizarddata->executionmode = $fromform->executionmode;
+        $wizarddata->replacementtext = $fromform->replacementtext;
+        $cache->set('wizard', $wizarddata);
         
         // Validate replacement text is provided.
         if (empty($fromform->replacementtext) && $fromform->replacementtext !== '0') {
@@ -240,16 +255,16 @@ if ($fromform = $mform->get_data()) {
         
         // Create replacer instance with final configuration.
         $config = [
-            'search_term' => $SESSION->textplus_wizard->searchterm,
-            'replacement_text' => $SESSION->textplus_wizard->replacementtext,
-            'case_sensitive' => (bool)$SESSION->textplus_wizard->casesensitive,
-            'dry_run' => ($SESSION->textplus_wizard->executionmode === 'preview'),
+            'search_term' => $wizarddata->searchterm,
+            'replacement_text' => $wizarddata->replacementtext,
+            'case_sensitive' => (bool)$wizarddata->casesensitive,
+            'dry_run' => ($wizarddata->executionmode === 'preview'),
         ];
         
         $replacer = new \local_textplus\replacer($config);
         
-        // Get selected items from session.
-        $itemstoprocess = $SESSION->textplus_wizard->selecteditems;
+        // Get selected items from cache.
+        $itemstoprocess = $wizarddata->selecteditems;
         
         // Process text replacements.
         $replacer->process_text_replacements($itemstoprocess);
@@ -261,8 +276,8 @@ if ($fromform = $mform->get_data()) {
         $event = \local_textplus\event\images_replaced::create([
             'context' => context_system::instance(),
             'other' => [
-                'searchterm' => $SESSION->textplus_wizard->searchterm,
-                'replacementtext' => $SESSION->textplus_wizard->replacementtext,
+                'searchterm' => $wizarddata->searchterm,
+                'replacementtext' => $wizarddata->replacementtext,
                 'itemsreplaced' => $replacer->get_stats()['items_replaced'],
             ],
         ]);
@@ -273,8 +288,8 @@ if ($fromform = $mform->get_data()) {
         $renderer = $PAGE->get_renderer('local_textplus');
         echo $renderer->render_results($replacer, $config['dry_run']);
         
-        // Clear session (Start Over button is rendered by the renderer).
-        unset($SESSION->textplus_wizard);
+        // Clear cache (Start Over button is rendered by the renderer).
+        $cache->delete('wizard');
         
         echo $OUTPUT->footer();
         exit;
@@ -300,7 +315,8 @@ if ($step != 2) {
 }
 
 // STEP 2: Display content selection checkboxes.
-if ($step == 2 && !empty($SESSION->textplus_wizard)) {
+$wizarddata = $cache->get('wizard');
+if ($step == 2 && !empty($wizarddata)) {
     // Verify user still has permission.
     if (!has_capability('moodle/site:config', context_system::instance())) {
         echo $OUTPUT->notification(
@@ -333,11 +349,11 @@ if ($step == 2 && !empty($SESSION->textplus_wizard)) {
     echo '</ol>';
     echo '</div>';
     
-    $databaseitems = $SESSION->textplus_wizard->databaseitems;
+    $databaseitems = $wizarddata->databaseitems;
     
     if (empty($databaseitems)) {
         echo $OUTPUT->notification(
-            get_string('noitemsfound_desc', 'local_textplus', s($SESSION->textplus_wizard->searchterm)),
+            get_string('noitemsfound_desc', 'local_textplus', s($wizarddata->searchterm)),
             \core\output\notification::NOTIFY_WARNING
         );
         

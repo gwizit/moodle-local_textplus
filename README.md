@@ -3,7 +3,7 @@
 
 **Created**: October 21, 2025  
 **Developer**: G Wiz IT Solutions (https://gwizit.com)  
-**Version**: 1.0.1  
+**Version**: 1.0.3  
 **License**: GNU GPL v3
 
 ---

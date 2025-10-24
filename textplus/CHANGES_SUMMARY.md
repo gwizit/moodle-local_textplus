@@ -1,8 +1,66 @@
-# Changes Summary - Edwiser Page Builder Support
+# Changes Summary - TextPlus Plugin Updates
 
-## Date: October 22, 2025
+---
 
-## ✅ COMPLETE - Full Edwiser Page Builder Support Added
+## Version 1.0.3 - Cache API Migration
+
+### Date: October 24, 2025
+
+### ✅ COMPLETE - Migrated to Moodle Cache API
+
+#### Problem Solved
+Following Moodle plugin review feedback, the plugin now uses Moodle's Cache API instead of direct `$SESSION` usage. This aligns with Moodle coding standards and best practices.
+
+**Reference:** [Moodle Universal Cache (MUC)](https://moodledev.io/docs/5.0/apis/subsystems/muc)
+
+#### Changes Made
+
+**1. Created Cache Definition**
+- **File:** `db/caches.php` (NEW)
+- **Cache Type:** Session-based cache
+- **Purpose:** Store wizard state data across multi-step form process
+
+```php
+$definitions = [
+    'wizarddata' => [
+        'mode' => cache_store::MODE_SESSION,
+        'simplekeys' => true,
+        'simpledata' => false,
+        'staticacceleration' => true,
+        'staticaccelerationsize' => 1,
+    ],
+];
+```
+
+**2. Updated index.php**
+- Replaced all `$SESSION->textplus_wizard` references with Cache API calls
+- Added helper functions:
+  - `get_wizard_cache()` - Get cache instance
+  - `get_wizard_data()` - Retrieve wizard state
+  - `set_wizard_data()` - Save wizard state
+  - `clear_wizard_data()` - Clear wizard state
+
+**3. Benefits**
+- ✅ Follows Moodle coding standards
+- ✅ Better abstraction and flexibility
+- ✅ Supports multiple cache backends
+- ✅ Cleaner separation of concerns
+- ✅ Easier to test and maintain
+- ✅ Standards compliant for Moodle plugin directory
+
+**4. Version Update**
+- Version: `1.0.2` → `1.0.3`
+- Updated all documentation references
+
+**Status:** ✅ READY FOR MOODLE PLUGIN REVIEW
+
+---
+
+## Version 1.0.1 - Edwiser Page Builder Support
+
+### Date: October 22, 2025
+
+### ✅ COMPLETE - Full Edwiser Page Builder Support Added
 
 ### Problem Solved
 Edwiser Page Builder content is now fully searchable! The plugin searches **ALL** Edwiser tables where content is stored:

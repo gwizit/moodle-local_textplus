@@ -4,13 +4,23 @@ A powerful Moodle plugin that allows site administrators to search and replace t
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** v1.0.1  
+**Version:** v1.0.3  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
 ---
 
-## What's New in Version 1.0.1
+## What's New in Version 1.0.3
+
+### 🏗️ Code Quality & Standards Compliance
+- **Moodle Cache API Integration** - Migrated from direct `$SESSION` usage to Moodle's Cache API
+- **Standards Compliant** - Follows Moodle coding standards and best practices
+- **Better Architecture** - Cleaner separation of concerns with cache abstraction
+- **Reference:** [Moodle Universal Cache (MUC)](https://moodledev.io/docs/5.0/apis/subsystems/muc)
+
+### Previous Updates
+
+#### Version 1.0.1
 
 ### 🎨 Edwiser Page Builder Support
 - **Full Compatibility** - Search and replace text within Edwiser Page Builder pages
@@ -27,7 +37,7 @@ A powerful Moodle plugin that allows site administrators to search and replace t
 - **Step 3: Replacement Options** - Configure replacement settings with mandatory backup confirmation
 - Visual step indicator showing progress
 - Back/Next navigation between steps
-- Session-based state management for seamless navigation
+- Cache-based state management for seamless navigation (using Moodle Cache API)
 
 ### 🔐 Enhanced Security
 - **Site Administrator Only Access** - Restricted to users with `moodle/site:config` capability

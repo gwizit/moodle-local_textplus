@@ -1,8 +1,8 @@
 # Moodle Security Guidelines Compliance Audit
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 1.0.2  
-**Audit Date:** October 21, 2025  
+**Version:** 1.0.3  
+**Audit Date:** October 24, 2025  
 **Reference:** https://moodledev.io/general/development/policies/security
 
 ---
@@ -12,6 +12,12 @@
 This comprehensive security audit verifies that the TextPlus plugin fully complies with all Moodle security guidelines and best practices. The plugin implements proper authentication, authorization, input validation, output escaping, CSRF protection, SQL injection prevention, and audit logging.
 
 **Overall Status:** ✅ **FULLY COMPLIANT**
+
+### Recent Updates (v1.0.3)
+- ✅ Migrated from direct `$SESSION` usage to Moodle's Cache API
+- ✅ Implements session-based caching for wizard state data
+- ✅ Follows Moodle coding standards and best practices
+- ✅ Reference: https://moodledev.io/docs/5.0/apis/subsystems/muc
 
 ---
 
@@ -561,10 +567,19 @@ if (empty($fromform->replacementtext) && $fromform->replacementtext !== '0') {
 
 ### 8.6 Context Preservation
 
-Session data properly isolated:
+Wizard state data properly isolated using Moodle's Cache API:
 ```php
-$SESSION->textplus_wizard  // Plugin-specific session namespace
+// Uses session-based cache with plugin-specific namespace
+$cache = cache::make('local_textplus', 'wizarddata');
+$wizarddata = $cache->get('wizard_state');
 ```
+
+**Benefits of Cache API over direct SESSION usage:**
+- ✅ Follows Moodle coding standards and best practices
+- ✅ Provides better abstraction and flexibility
+- ✅ Supports multiple cache backends if needed in future
+- ✅ Cleaner separation of concerns
+- ✅ Easier to test and maintain
 
 ### 8.7 UTF-8 Safety
 
