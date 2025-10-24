@@ -1,0 +1,119 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_textplus/item_selection
+
+    Item selection page template for TextPlus plugin.
+
+    Context variables required for this template:
+    * form_action - Form action URL
+    * sesskey - Session key
+    * select_items_message - Message prompting user to select items
+    * has_items - Boolean if items exist
+    * items - Array of database items
+    * select_all_label - Select all button label
+    * deselect_all_label - Deselect all button label
+    * warning_text - Warning text for select all
+    * back_label - Back button label
+    * next_label - Next button label
+    * total_occurrences - Total number of occurrences found
+
+    Example context (json):
+    {
+        "form_action": "/local/textplus/index.php",
+        "sesskey": "abc123",
+        "select_items_message": "Select items to process",
+        "has_items": true,
+        "items": [
+            {
+                "item_id": 123,
+                "checkbox_id": "item_123",
+                "table_name": "course",
+                "field_name": "summary",
+                "occurrence_count": 5,
+                "preview_text": "Sample text..."
+            }
+        ]
+    }
+}}
+
+<div class="local-textplus-item-selection">
+    <form method="post" action="{{form_action}}" id="local-textplus-itemselectionform">
+        <input type="hidden" name="step" value="2">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+        <p class="lead">{{select_items_message}}</p>
+
+        {{#has_items}}
+        <div class="local-textplus-stats">
+            <strong>{{#str}}totaloccurrences, local_textplus{{/str}}:</strong> {{total_occurrences}}
+        </div>
+
+        <div class="local-textplus-select-all-btn">
+            <a href="#" id="local-textplus-select-all" class="btn btn-sm btn-secondary">{{select_all_label}}</a>
+        </div>
+
+        <div class="local-textplus-item-list">
+            {{#items}}
+            <div class="local-textplus-item-container">
+                <input type="checkbox" name="database_items[]" value="{{item_id}}" class="local-textplus-item-checkbox" id="{{checkbox_id}}">
+                <label for="{{checkbox_id}}" class="local-textplus-item-label">
+                    <div class="local-textplus-item-header">
+                        <strong>{{table_name}}</strong> → {{field_name}}
+                        <span class="badge badge-primary">{{occurrence_count}} {{#str}}occurrences, local_textplus{{/str}}</span>
+                    </div>
+                    <div class="local-textplus-item-preview">
+                        {{preview_text}}
+                    </div>
+                    {{#has_occurrences}}
+                    <div class="local-textplus-item-actions">
+                        <a href="#" class="local-textplus-view-occurrences" data-item-id="{{item_id}}">
+                            {{#str}}viewoccurrences, local_textplus{{/str}}
+                        </a>
+                    </div>
+                    {{/has_occurrences}}
+                </label>
+            </div>
+            {{/items}}
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" name="backbtn" value="1" class="btn btn-secondary mr-2">{{back_label}}</button>
+            <button type="submit" name="nextbtn" value="1" class="btn btn-primary">{{next_label}}</button>
+        </div>
+        {{/has_items}}
+    </form>
+</div>
+
+<!-- Occurrence modal -->
+<div id="local-textplus-occurrence-modal" class="local-textplus-occurrence-modal">
+    <div class="local-textplus-occurrence-modal-content">
+        <span class="local-textplus-occurrence-modal-close">&times;</span>
+        <h3 id="local-textplus-occurrence-modal-title"></h3>
+        <div id="local-textplus-occurrence-modal-body"></div>
+    </div>
+</div>
+
+{{#js}}
+require(['local_textplus/item_selection'], function(ItemSelection) {
+    ItemSelection.init({
+        selectAllText: '{{select_all_label}}',
+        deselectAllText: '{{deselect_all_label}}',
+        warningText: '{{warning_text}}'
+    });
+});
+{{/js}}

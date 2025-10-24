@@ -30,17 +30,17 @@ require_once($CFG->libdir . '/adminlib.php');
  * Helper function to extract form data from wizard data
  * Only includes scalar values - excludes arrays which cause form errors
  *
- * @param stdClass $wizarddata Wizard data from cache
+ * @param stdClass $wizard_data Wizard data from cache
  * @return stdClass Form data with only scalar values
  */
-function get_form_data_from_wizard($wizarddata) {
-    $formdata = new stdClass();
-    $formdata->searchterm = $wizarddata->searchterm;
-    $formdata->casesensitive = $wizarddata->casesensitive;
-    $formdata->executionmode = $wizarddata->executionmode;
-    $formdata->replacementtext = $wizarddata->replacementtext;
+function get_form_data_from_wizard($wizard_data) {
+    $form_data = new stdClass();
+    $form_data->searchterm = $wizard_data->searchterm;
+    $form_data->casesensitive = $wizard_data->casesensitive;
+    $form_data->executionmode = $wizard_data->executionmode;
+    $form_data->replacementtext = $wizard_data->replacementtext;
     // Note: databaseitems and selecteditems are NOT included - they stay in cache only
-    return $formdata;
+    return $form_data;
 }
 
 admin_externalpage_setup('local_textplus_tool');
@@ -48,11 +48,11 @@ admin_externalpage_setup('local_textplus_tool');
 require_login();
 
 // Require site administrator permission.
-$systemcontext = context_system::instance();
-if (!has_capability('moodle/site:config', $systemcontext)) {
+$system_context = context_system::instance();
+if (!has_capability('moodle/site:config', $system_context)) {
     // Display error page for non-administrators.
     $PAGE->set_url(new moodle_url('/local/textplus/index.php'));
-    $PAGE->set_context($systemcontext);
+    $PAGE->set_context($system_context);
     $PAGE->set_title(get_string('pluginname', 'local_textplus'));
     $PAGE->set_heading(get_string('heading', 'local_textplus'));
     
@@ -76,76 +76,76 @@ $PAGE->set_heading(get_string('heading', 'local_textplus'));
 $cache = cache::make('local_textplus', 'wizarddata');
 
 // Get default settings.
-$defaultsearchterm = get_config('local_textplus', 'defaultsearchterm');
-$defaultmode = get_config('local_textplus', 'defaultmode');
+$default_search_term = get_config('local_textplus', 'defaultsearchterm');
+$default_mode = get_config('local_textplus', 'defaultmode');
 
 // Set defaults if not configured.
-if ($defaultsearchterm === false) {
-    $defaultsearchterm = '';
+if ($default_search_term === false) {
+    $default_search_term = '';
 }
-if ($defaultmode === false) {
-    $defaultmode = 'preview';
+if ($default_mode === false) {
+    $default_mode = 'preview';
 }
 
 // Get current step.
 $step = optional_param('step', 1, PARAM_INT);
-$backbtn = optional_param('backbtn', '', PARAM_RAW);
-$nextbtn = optional_param('nextbtn', '', PARAM_RAW);
-$executebtn = optional_param('executebtn', '', PARAM_RAW);
+$back_btn = optional_param('backbtn', '', PARAM_RAW);
+$next_btn = optional_param('nextbtn', '', PARAM_RAW);
+$execute_btn = optional_param('executebtn', '', PARAM_RAW);
 
 // Handle "Start Over" by clearing cache.
-$startover = optional_param('startover', '', PARAM_RAW);
-if ($startover) {
+$start_over = optional_param('startover', '', PARAM_RAW);
+if ($start_over) {
     $cache->delete('wizard');
     redirect($PAGE->url);
 }
 
 // Initialize or retrieve wizard data from cache.
-$wizarddata = $cache->get('wizard');
-if (!$wizarddata) {
-    $wizarddata = new stdClass();
-    $wizarddata->searchterm = $defaultsearchterm;
-    $wizarddata->casesensitive = 0;
-    $wizarddata->executionmode = $defaultmode;
-    $wizarddata->replacementtext = '';
-    $wizarddata->databaseitems = [];
-    $wizarddata->selecteditems = [];
-    $cache->set('wizard', $wizarddata);
+$wizard_data = $cache->get('wizard');
+if (!$wizard_data) {
+    $wizard_data = new stdClass();
+    $wizard_data->searchterm = $default_search_term;
+    $wizard_data->casesensitive = 0;
+    $wizard_data->executionmode = $default_mode;
+    $wizard_data->replacementtext = '';
+    $wizard_data->databaseitems = [];
+    $wizard_data->selecteditems = [];
+    $cache->set('wizard', $wizard_data);
 }
 
 // Prepare form custom data.
 // Only pass scalar values to form - arrays cause htmlspecialchars errors
-$formdata = get_form_data_from_wizard($wizarddata);
+$form_data = get_form_data_from_wizard($wizard_data);
 
-$customdata = [
-    'formdata' => $formdata,
+$custom_data = [
+    'formdata' => $form_data,
     'step' => $step,
 ];
 
 // Create form.
-$mform = new \local_textplus\form\replacer_form(null, $customdata);
+$mform = new \local_textplus\form\replacer_form(null, $custom_data);
 
 // STEP 2: Handle content selection (uses custom HTML form, not moodleform)
-if ($step == 2 && $nextbtn) {
+if ($step == 2 && $next_btn) {
     require_sesskey();
     require_capability('moodle/site:config', context_system::instance());
     require_capability('local/textplus:manage', context_system::instance());
     
     // Get selected database items from submitted form - sanitize input.
-    $selecteditems = optional_param_array('database_items', [], PARAM_RAW);
+    $selected_items = optional_param_array('database_items', [], PARAM_RAW);
     
     // Validate at least one item is selected.
-    if (empty($selecteditems)) {
+    if (empty($selected_items)) {
         redirect($PAGE->url . '?step=2', get_string('error_noitemsselected', 'local_textplus'),
             null, \core\output\notification::NOTIFY_ERROR);
     }
     
     // Validate and parse selections (format: table|id|field).
-    $validatedselections = [];
-    foreach ($selecteditems as $itemkey) {
-        $parts = explode('|', $itemkey);
+    $validated_selections = [];
+    foreach ($selected_items as $item_key) {
+        $parts = explode('|', $item_key);
         if (count($parts) === 3) {
-            $validatedselections[] = [
+            $validated_selections[] = [
                 'table' => clean_param($parts[0], PARAM_ALPHANUMEXT),
                 'id' => clean_param($parts[1], PARAM_INT),
                 'field' => clean_param($parts[2], PARAM_ALPHANUMEXT)
@@ -154,120 +154,122 @@ if ($step == 2 && $nextbtn) {
     }
     
     // Save validated selections to cache.
-    $wizarddata = $cache->get('wizard');
-    $wizarddata->selecteditems = $validatedselections;
-    $cache->set('wizard', $wizarddata);
+    $wizard_data = $cache->get('wizard');
+    $wizard_data->selecteditems = $validated_selections;
+    $cache->set('wizard', $wizard_data);
     
     // Move to step 3.
     $step = 3;
-    $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
+    $custom_data['step'] = $step;
+    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
     
-    $mform = new \local_textplus\form\replacer_form(null, $customdata);
+    $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
 
 // STEP 2: Handle back button separately
-if ($step == 2 && $backbtn) {
+if ($step == 2 && $back_btn) {
     require_sesskey();
     $step = 1;
-    $wizarddata = $cache->get('wizard');
-    $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
-    $mform = new \local_textplus\form\replacer_form(null, $customdata);
+    $wizard_data = $cache->get('wizard');
+    $custom_data['step'] = $step;
+    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+    $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
 
 // STEP 3: Handle back button separately (before form validation)
-if ($step == 3 && $backbtn) {
+if ($step == 3 && $back_btn) {
     require_sesskey();
     $step = 2;
-    $wizarddata = $cache->get('wizard');
-    $customdata['step'] = $step;
-    $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
-    $mform = new \local_textplus\form\replacer_form(null, $customdata);
+    $wizard_data = $cache->get('wizard');
+    $custom_data['step'] = $step;
+    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+    $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
 
 // Handle form submission (for steps 1 and 3 only - step 2 handled above)
-if ($fromform = $mform->get_data()) {
+if ($from_form = $mform->get_data()) {
     require_sesskey();
     
     // Verify site administrator permission for all form submissions.
     if (!has_capability('moodle/site:config', context_system::instance())) {
-        print_error('error_requiresiteadmin', 'local_textplus');
+        throw new moodle_exception('error_requiresiteadmin', 'local_textplus', '', null, 
+            get_string('error_requiresiteadmin_formsubmission', 'local_textplus'));
     }
     
     // STEP 1: Search for text in database
-    if ($step == 1 && !$backbtn) {
+    if ($step == 1 && !$back_btn) {
         require_capability('local/textplus:manage', context_system::instance());
         
         // Save search criteria to cache (already sanitized by moodle form).
-        $wizarddata = $cache->get('wizard');
-        $wizarddata->searchterm = $fromform->searchterm;
-        $wizarddata->casesensitive = isset($fromform->casesensitive) ? $fromform->casesensitive : 0;
+        $wizard_data = $cache->get('wizard');
+        $wizard_data->searchterm = $from_form->searchterm;
+        $wizard_data->casesensitive = isset($from_form->casesensitive) ? $from_form->casesensitive : 0;
         
         $config = [
-            'search_term' => $fromform->searchterm,
-            'case_sensitive' => (bool)$fromform->casesensitive,
+            'search_term' => $from_form->searchterm,
+            'case_sensitive' => (bool)$from_form->casesensitive,
             'dry_run' => true,
         ];
         
         $replacer = new \local_textplus\replacer($config);
-        $databaseitems = $replacer->find_text_in_database();
+        $database_items = $replacer->find_text_in_database();
         
         // Store found database items in cache.
-        $wizarddata->databaseitems = $databaseitems;
-        $cache->set('wizard', $wizarddata);
+        $wizard_data->databaseitems = $database_items;
+        $cache->set('wizard', $wizard_data);
         
         // Move to step 2.
         $step = 2;
-        $customdata['step'] = $step;
-        $customdata['formdata'] = get_form_data_from_wizard($wizarddata);
-        $mform = new \local_textplus\form\replacer_form(null, $customdata);
+        $custom_data['step'] = $step;
+        $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+        $mform = new \local_textplus\form\replacer_form(null, $custom_data);
         
     // STEP 3: Execute text replacement
-    } else if ($step == 3 && $executebtn) {
+    } else if ($step == 3 && $execute_btn) {
         // Double-check site administrator permission for text replacement.
         if (!has_capability('moodle/site:config', context_system::instance())) {
-            print_error('error_requiresiteadmin', 'local_textplus');
+            throw new moodle_exception('error_requiresiteadmin', 'local_textplus', '', null,
+                get_string('error_requiresiteadmin_formsubmission', 'local_textplus'));
         }
         
         require_capability('local/textplus:manage', context_system::instance());
         confirm_sesskey();
         
         // Verify backup confirmation.
-        if (empty($fromform->backupconfirm)) {
+        if (empty($from_form->backupconfirm)) {
             redirect($PAGE->url . '?step=3', get_string('backupconfirm_required', 'local_textplus'),
                 null, \core\output\notification::NOTIFY_ERROR);
         }
         
         // Get wizard data from cache.
-        $wizarddata = $cache->get('wizard');
+        $wizard_data = $cache->get('wizard');
         
         // Save final options (already sanitized by form).
-        $wizarddata->executionmode = $fromform->executionmode;
-        $wizarddata->replacementtext = $fromform->replacementtext;
-        $cache->set('wizard', $wizarddata);
+        $wizard_data->executionmode = $from_form->executionmode;
+        $wizard_data->replacementtext = $from_form->replacementtext;
+        $cache->set('wizard', $wizard_data);
         
         // Validate replacement text is provided.
-        if (empty($fromform->replacementtext) && $fromform->replacementtext !== '0') {
+        if (empty($from_form->replacementtext) && $from_form->replacementtext !== '0') {
             redirect($PAGE->url . '?step=3', get_string('error_noreplacementtext', 'local_textplus'),
                 null, \core\output\notification::NOTIFY_ERROR);
         }
         
         // Create replacer instance with final configuration.
         $config = [
-            'search_term' => $wizarddata->searchterm,
-            'replacement_text' => $wizarddata->replacementtext,
-            'case_sensitive' => (bool)$wizarddata->casesensitive,
-            'dry_run' => ($wizarddata->executionmode === 'preview'),
+            'search_term' => $wizard_data->searchterm,
+            'replacement_text' => $wizard_data->replacementtext,
+            'case_sensitive' => (bool)$wizard_data->casesensitive,
+            'dry_run' => ($wizard_data->executionmode === 'preview'),
         ];
         
         $replacer = new \local_textplus\replacer($config);
         
         // Get selected items from cache.
-        $itemstoprocess = $wizarddata->selecteditems;
+        $items_to_process = $wizard_data->selecteditems;
         
         // Process text replacements.
-        $replacer->process_text_replacements($itemstoprocess);
+        $replacer->process_text_replacements($items_to_process);
         
         // Log operation.
         $replacer->log_operation($USER->id);
@@ -276,8 +278,8 @@ if ($fromform = $mform->get_data()) {
         $event = \local_textplus\event\images_replaced::create([
             'context' => context_system::instance(),
             'other' => [
-                'searchterm' => $wizarddata->searchterm,
-                'replacementtext' => $wizarddata->replacementtext,
+                'searchterm' => $wizard_data->searchterm,
+                'replacementtext' => $wizard_data->replacementtext,
                 'itemsreplaced' => $replacer->get_stats()['items_replaced'],
             ],
         ]);
@@ -315,8 +317,8 @@ if ($step != 2) {
 }
 
 // STEP 2: Display content selection checkboxes.
-$wizarddata = $cache->get('wizard');
-if ($step == 2 && !empty($wizarddata)) {
+$wizard_data = $cache->get('wizard');
+if ($step == 2 && !empty($wizard_data)) {
     // Verify user still has permission.
     if (!has_capability('moodle/site:config', context_system::instance())) {
         echo $OUTPUT->notification(
@@ -349,11 +351,11 @@ if ($step == 2 && !empty($wizarddata)) {
     echo '</ol>';
     echo '</div>';
     
-    $databaseitems = $wizarddata->databaseitems;
+    $database_items = $wizard_data->databaseitems;
     
-    if (empty($databaseitems)) {
+    if (empty($database_items)) {
         echo $OUTPUT->notification(
-            get_string('noitemsfound_desc', 'local_textplus', s($wizarddata->searchterm)),
+            get_string('noitemsfound_desc', 'local_textplus', s($wizard_data->searchterm)),
             \core\output\notification::NOTIFY_WARNING
         );
         
@@ -438,7 +440,7 @@ if ($step == 2 && !empty($wizarddata)) {
             );
             
             echo html_writer::start_tag('div', ['class' => 'item-list']);
-            foreach ($databaseitems as $itemindex => $item) {
+            foreach ($database_items as $item_index => $item) {
                 // Handle both object and array formats (session serialization may vary)
                 $table = is_object($item) ? $item->table : $item['table'];
                 $field = is_object($item) ? $item->field : $item['field'];
@@ -452,25 +454,25 @@ if ($step == 2 && !empty($wizarddata)) {
                     (isset($item['occurrences']) ? $item['occurrences'] : []);
                 
                 // Create unique item key for checkbox value (format: table|id|field).
-                $itemkey = s($table) . '|' . (int)$id . '|' . s($field);
-                $checkboxid = 'item_' . md5($itemkey);
+                $item_key = s($table) . '|' . (int)$id . '|' . s($field);
+                $checkbox_id = 'item_' . md5($item_key);
                 
                 echo html_writer::start_div('item');
                 
                 // Checkbox.
-                echo html_writer::checkbox('database_items[]', $itemkey, false, '', 
-                    ['class' => 'item-checkbox', 'id' => $checkboxid]);
+                echo html_writer::checkbox('database_items[]', $item_key, false, '', 
+                    ['class' => 'item-checkbox', 'id' => $checkbox_id]);
                 
                 // Item info.
-                echo html_writer::start_tag('label', ['for' => $checkboxid, 'style' => 'flex: 1; margin: 0; cursor: pointer;']);
+                echo html_writer::start_tag('label', ['for' => $checkbox_id, 'style' => 'flex: 1; margin: 0; cursor: pointer;']);
                 
                 // Location (make it clickable if URL exists)
                 if ($url) {
-                    $locationhtml = html_writer::link($url, s($location), [
+                    $location_html = html_writer::link($url, s($location), [
                         'target' => '_blank',
                         'onclick' => 'event.stopPropagation();'
                     ]);
-                    echo html_writer::div($locationhtml, 'item-location');
+                    echo html_writer::div($location_html, 'item-location');
                 } else {
                     echo html_writer::div(s($location), 'item-location');
                 }
@@ -479,30 +481,30 @@ if ($step == 2 && !empty($wizarddata)) {
                 
                 // Show occurrences as clickable links
                 if (!empty($occurrences) && is_array($occurrences)) {
-                    $occurrencecount = count($occurrences);
+                    $occurrence_count = count($occurrences);
                     echo html_writer::start_div('item-occurrences');
-                    echo html_writer::tag('strong', $occurrencecount . ' occurrence' . ($occurrencecount > 1 ? 's' : '') . ': ');
+                    echo html_writer::tag('strong', $occurrence_count . ' occurrence' . ($occurrence_count > 1 ? 's' : '') . ': ');
                     
-                    foreach ($occurrences as $occindex => $occurrence) {
-                        $occid = 'occ_' . $itemindex . '_' . $occindex;
-                        $contextdata = is_array($occurrence) ? 
+                    foreach ($occurrences as $occ_index => $occurrence) {
+                        $occ_id = 'occ_' . $item_index . '_' . $occ_index;
+                        $context_data = is_array($occurrence) ? 
                             (isset($occurrence['context']) ? $occurrence['context'] : '') :
                             (isset($occurrence->context) ? $occurrence->context : '');
-                        $matchdata = is_array($occurrence) ? 
+                        $match_data = is_array($occurrence) ? 
                             (isset($occurrence['match']) ? $occurrence['match'] : '') :
                             (isset($occurrence->match) ? $occurrence->match : '');
                         
                         // Skip empty contexts
-                        if (empty($contextdata)) {
+                        if (empty($context_data)) {
                             continue;
                         }
                         
                         // Use base64 encoding to preserve exact data without any HTML entity issues
                         // This prevents double-encoding problems with database content that already has entities
-                        echo html_writer::link('#', '#' . ($occindex + 1), [
+                        echo html_writer::link('#', '#' . ($occ_index + 1), [
                             'class' => 'occurrence-link',
-                            'data-context' => base64_encode($contextdata),
-                            'data-match' => base64_encode($matchdata),
+                            'data-context' => base64_encode($context_data),
+                            'data-match' => base64_encode($match_data),
                             'data-location' => base64_encode($location),
                             'onclick' => 'showOccurrence(this); return false;'
                         ]);
@@ -517,9 +519,9 @@ if ($step == 2 && !empty($wizarddata)) {
             echo html_writer::end_tag('div');
             
             // JavaScript for select all.
-            $selectalltext = addslashes_js(get_string('selectall', 'local_textplus'));
-            $deselectalltext = 'Deselect All';
-            $warningtext = addslashes_js(get_string('warning_selectall', 'local_textplus'));
+            $select_all_text = addslashes_js(get_string('selectall', 'local_textplus'));
+            $deselect_all_text = 'Deselect All';
+            $warning_text = addslashes_js(get_string('warning_selectall', 'local_textplus'));
             echo html_writer::script("
                 document.getElementById('select-all-items').addEventListener('click', function(e) {
                     e.preventDefault();
@@ -528,13 +530,13 @@ if ($step == 2 && !empty($wizarddata)) {
                     
                     if (!allChecked) {
                         // Selecting all - show warning
-                        alert('{$warningtext}');
+                        alert('{$warning_text}');
                     }
                     
                     checkboxes.forEach(function(cb) {
                         cb.checked = !allChecked;
                     });
-                    this.textContent = allChecked ? '{$selectalltext}' : '{$deselectalltext}';
+                    this.textContent = allChecked ? '{$select_all_text}' : '{$deselect_all_text}';
                 });
             ");
             

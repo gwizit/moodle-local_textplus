@@ -1,11 +1,5 @@
 <?php
-// This file is padefined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_textplus';
-$plugin->version = 2025102400;  // YYYYMMDDXX format.
-$plugin->requires = 2023042400; // Moodle 4.3 minimum version.
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v1.0.3';oodle - http://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,7 +26,7 @@ $plugin->release = 'v1.0.3';oodle - http://moodle.org/
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_textplus';
-$plugin->version = 2025102201;  // YYYYMMDDXX format.
+$plugin->version = 2025102501;  // YYYYMMDDXX format.
 $plugin->requires = 2023042400; // Moodle 4.3 minimum version.
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v1.0.1';
+$plugin->release = 'v1.0.5';

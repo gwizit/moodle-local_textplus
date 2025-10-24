@@ -31,7 +31,7 @@ $string['textplus:view'] = 'View TextPlus tool';
 
 // Main page strings.
 $string['heading'] = 'TextPlus - Database Text Search & Replace Tool';
-$string['description'] = 'Search and replace text content across your entire Moodle database. Find and update text in pages, activities, course content, labels, and more.<br><br><strong style="color: #d32f2f;">⚠️ IMPORTANT WARNING:</strong> This is a powerful tool that makes <strong>permanent changes</strong> to your Moodle database. Administrators should use this plugin with <strong>extreme caution</strong>. <strong>ALWAYS create a complete database backup</strong> before using this tool. Text replacements <strong>cannot be undone</strong>. Test in dry run mode first, then verify results carefully before executing changes on a production site.';
+$string['description'] = 'This powerful Moodle plugin helps administrators search and selectively replace text across their entire Moodle database. What makes it different from Moodle\'s built-in tools or other plugins is that it lets you preview every change before it happens. You can see exactly which code snippets and text will be updated, giving you full control and peace of mind. With its easy step-by-step wizard and strong security features, you can safely update course content, activities, pages, and labels with confidence.<br><br><strong style="color: #d32f2f;">⚠️ IMPORTANT WARNING:</strong> This is a powerful tool that makes <strong>permanent changes</strong> to your Moodle database. Administrators should use this plugin with <strong>extreme caution</strong>. <strong>ALWAYS create a complete database backup</strong> before using this tool. Text replacements <strong>cannot be undone</strong>. Test in dry run mode first, then verify results carefully before executing changes on a production site.';
 $string['searchterm'] = 'Search text';
 $string['searchterm_help'] = 'Enter the exact text string you want to find in the database (case-sensitive by default). This will search through course content, page text, activity descriptions, labels, and other text fields.';
 $string['replacementtext'] = 'Replacement text';
@@ -117,6 +117,7 @@ $string['error_nosearchterm'] = 'Please enter a search text.';
 $string['error_nopermission'] = 'You do not have permission to use this tool.';
 $string['error_noitemsselected'] = 'Please select at least one item to update.';
 $string['error_requiresiteadmin'] = 'Access denied. This tool is only available to site administrators. Please contact your site administrator if you need access to this functionality.';
+$string['error_requiresiteadmin_formsubmission'] = 'User attempted form submission without site:config capability';
 $string['error_databaseerror'] = 'Database error occurred: {$a}';
 
 // Warnings.
@@ -141,8 +142,16 @@ $string['privacy:metadata:local_textplus_log:timemodified'] = 'When the operatio
 $string['eventtextreplaced'] = 'Text replaced';
 
 // Credits.
-$string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank">G Wiz IT Solutions</a> | <a href="https://square.link/u/9SpmIaIW" target="_blank">💝 Support This Project</a>';
-$string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> Please consider <a href="https://square.link/u/9SpmIaIW" target="_blank">making a donation</a> to help us maintain and improve this plugin. Your support keeps this project alive!';
+$string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank">G Wiz IT Solutions</a> | <a href="https://square.link/u/F3EXIaVp" target="_blank">💝 Support This Project</a>';
+$string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> Please consider <a href="https://square.link/u/F3EXIaVp" target="_blank">making a donation</a> to help us maintain and improve this plugin. Your support keeps this project alive!';
+
+// Additional template strings.
+$string['totaloccurrences'] = 'Total occurrences';
+$string['occurrences'] = 'occurrence(s)';
+$string['viewoccurrences'] = 'View occurrences';
+$string['deselectall'] = 'Deselect all';
+$string['preview'] = 'Preview';
+$string['stats_occurrences'] = 'Occurrences replaced';
 
 // Edwiser Page Builder strings.
 $string['edwiser_detected_published'] = 'Edwiser Page Builder detected - including published pages';

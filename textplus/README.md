@@ -1,16 +1,29 @@
 # Moodle TextPlus Plugin
 
-A powerful Moodle plugin that allows site administrators to search and replace text content across their entire Moodle database. Find and update text in pages, activities, course content, labels, and more with a user-friendly multi-step wizard interface and comprehensive security controls.
+This powerful Moodle plugin helps administrators search and selectively replace text across their entire Moodle database. What makes it different from Moodle's built-in tools or other plugins is that it lets you preview every change before it happens. You can see exactly which code snippets and text will be updated, giving you full control and peace of mind. With its easy step-by-step wizard and strong security features, you can safely update course content, activities, pages, and labels with confidence.
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** v1.0.3  
+**Version:** 1.0.5  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
 ---
 
-## What's New in Version 1.0.3
+## What's New in Version 1.0.5
+
+### 🏗️ Modern Architecture Refactoring
+- **Mustache Templates** - Complete separation of presentation from logic
+- **Output API** - Proper renderer classes with output components
+- **ES6 JavaScript Modules** - AMD-compliant JavaScript with proper dependencies
+- **Namespaced CSS** - All styles use .local-textplus prefix to prevent conflicts
+- **Deprecated Function Fix** - Replaced print_error() with moodle_exception
+- **Standards Compliant** - Follows all Moodle 4.x/5.x coding standards
+- **Reference:** [Moodle Output API](https://moodledev.io/docs/apis/core/output)
+
+### Previous Updates
+
+#### Version 1.0.3
 
 ### 🏗️ Code Quality & Standards Compliance
 - **Moodle Cache API Integration** - Migrated from direct `$SESSION` usage to Moodle's Cache API
@@ -453,9 +466,17 @@ The plugin defines two capabilities and requires site administrator access:
 
 For issues, questions, or feature requests:
 
+- **GitHub Repository:** https://github.com/gwizit/moodle-local_textplus
+- **Bug Tracker:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Website**: [https://gwizit.com](https://gwizit.com)
 - **Email**: Contact through gwizit.com
-- **Moodle Plugins**: [Plugin page on Moodle.org]
+- **Moodle Plugins**: *(pending submission)*
+
+**Found this plugin useful?** Consider supporting its development!
+
+- **Donate:** https://square.link/u/F3EXIaVp
+
+Your support helps us maintain and improve this plugin. Thank you! 💝
 
 ---
 

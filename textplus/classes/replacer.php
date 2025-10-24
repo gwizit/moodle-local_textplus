@@ -42,7 +42,7 @@ class replacer {
     private $stats;
 
     /** @var array Replacement log entries */
-    private $replacementlog;
+    private $replacement_log;
 
     /** @var array Output messages */
     private $output;
@@ -69,7 +69,7 @@ class replacer {
         ];
 
         $this->output = [];
-        $this->replacementlog = [];
+        $this->replacement_log = [];
     }
 
     /**

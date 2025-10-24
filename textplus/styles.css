@@ -1,0 +1,338 @@
+/**
+ * TextPlus plugin styles
+ *
+ * All styles are namespaced with .local-textplus prefix
+ *
+ * @package    local_textplus
+ * @copyright  2025 G Wiz IT Solutions {@link https://gwizit.com}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/* Stats container and cards */
+.local-textplus-stats-container {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.local-textplus-stat-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    min-width: 120px;
+    border-left: 4px solid #3498db;
+}
+
+.local-textplus-stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.local-textplus-stat-label {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Stats display */
+.local-textplus-stats {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin: 15px 0;
+    color: #004085;
+}
+
+/* Item list styling */
+.local-textplus-item-list {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin: 20px 0;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.local-textplus-item-container {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.local-textplus-item-container:last-child {
+    border-bottom: none;
+}
+
+.local-textplus-item-container:hover {
+    background: #f8f9fa;
+}
+
+.local-textplus-item-container input[type="checkbox"] {
+    margin: 4px 0 0 0;
+    flex-shrink: 0;
+}
+
+.local-textplus-item-label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    display: block;
+}
+
+.local-textplus-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.local-textplus-item-header strong {
+    color: #0056b3;
+    font-family: monospace;
+}
+
+.local-textplus-item-preview {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.4;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.local-textplus-item-actions {
+    margin-top: 8px;
+}
+
+.local-textplus-view-occurrences {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.local-textplus-view-occurrences:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+/* Item result display (results page) */
+.local-textplus-item-result {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.local-textplus-item-result:last-child {
+    border-bottom: none;
+}
+
+.local-textplus-item-message {
+    margin: 8px 0;
+    font-weight: 500;
+}
+
+.local-textplus-preview-content {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 4px;
+}
+
+/* Preview warning */
+.local-textplus-preview-warning {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 6px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    color: #856404;
+}
+
+.local-textplus-preview-warning strong {
+    color: #856404;
+}
+
+/* Output console */
+.local-textplus-output-console {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 6px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    max-height: 500px;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+
+.local-textplus-output-line {
+    margin: 2px 0;
+}
+
+.local-textplus-output-info {
+    color: #90cdf4;
+}
+
+.local-textplus-output-success {
+    color: #68d391;
+}
+
+.local-textplus-output-warning {
+    color: #fbd38d;
+}
+
+.local-textplus-output-error {
+    color: #fc8181;
+}
+
+/* Section headers */
+.local-textplus-section-header {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: bold;
+    margin-top: 20px;
+    border-radius: 6px 6px 0 0;
+}
+
+/* Select all button */
+.local-textplus-select-all-btn {
+    margin: 10px 0;
+}
+
+/* Step indicator */
+.local-textplus-step-indicator {
+    margin-bottom: 1.5rem;
+}
+
+.local-textplus-step-indicator .badge-current {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.local-textplus-step-indicator .badge-completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.local-textplus-step-indicator .badge-upcoming {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Occurrence modal */
+.local-textplus-occurrence-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.local-textplus-occurrence-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 900px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.local-textplus-occurrence-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+    right: 0;
+}
+
+.local-textplus-occurrence-modal-close:hover,
+.local-textplus-occurrence-modal-close:focus {
+    color: #000;
+}
+
+#local-textplus-occurrence-modal-title {
+    margin-top: 0;
+    padding-right: 30px;
+}
+
+#local-textplus-occurrence-modal-body {
+    margin-top: 15px;
+}
+
+/* Results page specific */
+.local-textplus-results h2 {
+    margin-bottom: 1rem;
+}
+
+.local-textplus-results h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Item selection page specific */
+.local-textplus-item-selection .lead {
+    margin-bottom: 1.5rem;
+}
+
+/* No items found message */
+.local-textplus-no-items {
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Main page container */
+.local-textplus-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Form styling */
+.local-textplus-form-section {
+    margin: 20px 0;
+}
+
+.local-textplus-form-section label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Badge styling */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875em;
+    font-weight: 500;
+}
+
+.badge-primary {
+    background-color: #007bff;
+    color: #fff;
+}
