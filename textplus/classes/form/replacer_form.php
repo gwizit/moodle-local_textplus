@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Image replacer form
+ * Text replacer form
  *
  * @package    local_textplus
  * @copyright  2025 G Wiz IT Solutions {@link https://gwizit.com}
@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Form for image replacer tool
+ * Form for text replacer tool
  *
  * @package    local_textplus
  * @copyright  2025 G Wiz IT Solutions

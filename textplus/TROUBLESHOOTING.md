@@ -843,20 +843,13 @@ When reporting issues, include:### Error: "Extension mismatch: pdf file cannot r
 
 
 
-## Common Error Messages Reference3. **Content Not in Database**3. Verify GD library is available for cross-format conversion
+## Common Error Messages Reference
 
-
-
-| Error Message | Most Common Cause | Quick Fix |   - Some content may be in files, not database
-
+| Error Message | Most Common Cause | Quick Fix |
 |--------------|-------------------|-----------|
-
-| "Access denied" | Not site administrator | Must be site admin with `moodle/site:config` |   - TextPlus searches database text fields only### Error: "Invalid file type. Please upload a JPEG, PNG, or WebP image"
-
+| "Access denied" | Not site administrator | Must be site admin with `moodle/site:config` |
 | "No items selected" | Checkboxes not checked | Select items in Step 2 |
-
 | "Backup confirmation required" | Checkbox not checked | Check backup confirmation in Step 3 |
-
 | "Session expired" | Page idle too long | Refresh and start over |
 
 | "Permission denied" | Database permissions | Check database user UPDATE permissions |### Error: "Please select at least one item to replace"**Cause:** Uploaded file doesn't match selected file type category.
@@ -1080,61 +1073,34 @@ When reporting issues, include:### Error: "Extension mismatch: pdf file cannot r
 
 **Solution:**
 
-- Content selections in Step 2 are not preserved when going back to Step 1**Cause:** Converting from PNG/WebP to JPEG.
-
+- Content selections in Step 2 are not preserved when going back to Step 1
 - This is intentional - new search may find different items
+- Complete the wizard without going back if possible
 
-- Complete the wizard without going back if possible**Solutions:**
+### Wizard Stuck on a Step
 
-1. Keep source and target in PNG or WebP format
+**Cause:** Validation error or missing required fields.
 
-### Wizard Stuck on a Step2. Don't enable cross-format conversion for transparent images
-
-3. JPEG doesn't support transparency
-
-**Cause:** Validation error or missing required fields.4. Ensure GD library is installed and configured correctly
-
-
-
-**Solutions:**### Colors Look Different
-
+**Solutions:**
 1. Check for error messages at top of page
-
-2. Verify all required fields are filled**Cause:** Color profile or format conversion issues.
-
+2. Verify all required fields are filled
 3. In Step 3, ensure backup confirmation is checked
-
-4. Refresh page and start over if necessary**Solutions:**
-
-5. Clear browser cache and cookies1. Keep same format (JPG→JPG, PNG→PNG)
-
-2. Use sRGB color profile in source images
-
----3. Test cross-format conversion on a few images first
-
-4. Check GD library configuration
-
-## Still Having Issues?
+4. Refresh page and start over if necessary
+5. Clear browser cache and cookies
 
 ---
 
+## Still Having Issues?
+
 ### Enable Debugging
 
-## Wizard Navigation Issues
-
 1. **Moodle Debugging:**
-
-   - Go to **Site administration → Development → Debugging**### Can't Go Back to Previous Step
-
+   - Go to **Site administration → Development → Debugging**
    - Set to "DEVELOPER: extra Moodle debug messages"
+   - Set "Display debug messages" to "Yes"
 
-   - Set "Display debug messages" to "Yes"**Cause:** Browser back button used instead of wizard's Back button.
-
-
-
-2. **PHP Error Logs:****Solution:**
-
-   - Linux: `/var/log/apache2/error.log` or `/var/log/php-fpm/error.log`- Always use the wizard's "Back" button at bottom of form
+2. **PHP Error Logs:**
+   - Linux: `/var/log/apache2/error.log` or `/var/log/php-fpm/error.log`
 
    - XAMPP: `xampp/apache/logs/error.log`- Don't use browser navigation buttons
 
@@ -1239,43 +1205,6 @@ When reporting issues, include:- This is intentional - new search may find diffe
 
 ---
 
-## GD Library Issues
-
-### Warning: "GD library is not available"
-
-**Impact:**
-- Cross-format image conversion disabled (JPG→PNG, PNG→WebP, etc.)
-- Images can still be replaced with exact same format
-- Image resizing may not work properly
-
-**Solutions:**
-
-**On Linux (Ubuntu/Debian):**
-```bash
-sudo apt-get install php-gd
-sudo systemctl restart apache2  # or php-fpm
-```
-
-**On Windows (XAMPP):**
-1. Edit php.ini
-2. Find line: `;extension=gd`
-3. Remove semicolon: `extension=gd`
-4. Restart Apache
-
-**On cPanel:**
-1. Go to "Select PHP Version" or "PHP Extensions"
-2. Enable "gd" extension
-3. Save changes
-
-**Verification:**
-Create file `phpinfo.php` with:
-```php
-<?php phpinfo(); ?>
-```
-Look for "GD Support: enabled"
-
----
-
 ## Still Having Issues?
 
 ### Enable Debugging
@@ -1320,14 +1249,11 @@ When reporting issues, include:
 |--------------|-------------------|-----------|
 | "Access denied" | Not site administrator | Must be site admin (not just manager) |
 | "No database content selected" | Checkboxes not checked | Select database content in Step 2 |
-| "Extension mismatch" | Wrong file type uploaded | Upload matching file type |
 | "Backup confirmation required" | Checkbox not checked | Check backup confirmation in Step 3 |
 | "Session expired" | Page idle too long | Refresh and start over |
-| "Invalid file type" | Uploaded file wrong format | Check file mimetype matches |
-| "GD library not available" | PHP extension not installed | Install php-gd extension |
 | "Permission denied" | File system permissions | Check web server write permissions |
-| "Memory limit exceeded" | File too large or too many | Increase PHP memory or process fewer database content |
+| "Memory limit exceeded" | Processing too many items | Increase PHP memory or process fewer items |
 
 ---
 
-*Last Updated: Version 3.0.3 - October 19, 2025*
+*Last Updated: Version 3.0.5 - October 24, 2025*

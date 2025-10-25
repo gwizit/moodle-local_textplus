@@ -373,18 +373,6 @@ The plugin defines two capabilities and requires site administrator access:
 - Try a shorter or more general search term
 - Check if the text is in a supported table
 
-### GD Library Not Available
-- **Symptom**: Warning displayed on main page
-- **Impact**: Image cross-format conversion disabled (JPG→JPG only, PNG→PNG only)
-- **Solution**: Ask system administrator to install PHP GD extension
-- **Workaround**: Replace images with exact same format only
-
-### Extension Mismatch Error
-- **Symptom**: "Extension mismatch: pdf file cannot replace jpg files"
-- **Cause**: Trying to replace PDF with JPG, or vice versa
-- **Solution**: Upload a file with the same extension as target files
-- **Note**: Images can cross-convert if "Allow cross-format" is enabled and GD is available
-
 ### Permission Denied Errors
 - Verify you have the `local/textplus:manage` capability
 - Check database permissions
