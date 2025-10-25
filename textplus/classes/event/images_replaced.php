@@ -60,8 +60,11 @@ class images_replaced extends \core\event\base {
      */
     public function get_description() {
         $itemsreplaced = isset($this->other['itemsreplaced']) ? $this->other['itemsreplaced'] : 0;
-        return "The user with id '$this->userid' replaced text matching term '{$this->other['searchterm']}'. " .
-            "Database items replaced: {$itemsreplaced}.";
+        return get_string('event_description', 'local_textplus', (object)[
+            'userid' => $this->userid,
+            'searchterm' => $this->other['searchterm'],
+            'itemsreplaced' => $itemsreplaced
+        ]);
     }
 
     /**

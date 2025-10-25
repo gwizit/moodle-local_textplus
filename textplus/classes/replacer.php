@@ -73,6 +73,54 @@ class replacer {
     }
 
     /**
+     * Check if search term contains wildcards
+     *
+     * @param string $searchterm Search term
+     * @return bool True if contains wildcards
+     */
+    private function has_wildcards($searchterm) {
+        return strpos($searchterm, '*') !== false;
+    }
+
+    /**
+     * Convert wildcard pattern to regex pattern
+     *
+     * @param string $pattern Pattern with * wildcards
+     * @param bool $casesensitive Case sensitive matching
+     * @return string Regex pattern
+     */
+    private function wildcard_to_regex($pattern, $casesensitive = false) {
+        // Escape special regex characters except *
+        $pattern = preg_quote($pattern, '/');
+        // Replace escaped \* with .*
+        $pattern = str_replace('\*', '.*', $pattern);
+        // Add anchors and modifiers
+        $modifier = $casesensitive ? '' : 'i';
+        return '/' . $pattern . '/' . $modifier;
+    }
+
+    /**
+     * Search for text with optional wildcard support
+     *
+     * @param string $content Content to search in
+     * @param string $searchterm Search term (may contain *)
+     * @param bool $casesensitive Case sensitive search
+     * @return bool True if found
+     */
+    private function text_matches($content, $searchterm, $casesensitive = false) {
+        if ($this->has_wildcards($searchterm)) {
+            $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
+            return preg_match($regex, $content) === 1;
+        } else {
+            if ($casesensitive) {
+                return strpos($content, $searchterm) !== false;
+            } else {
+                return stripos($content, $searchterm) !== false;
+            }
+        }
+    }
+
+    /**
      * Find text in database tables
      *
      * @return array Array of database items containing the search text
@@ -192,6 +240,9 @@ class replacer {
                     // Build SQL based on case sensitivity and table-specific requirements
                     if ($table === 'config_plugins') {
                         // Special handling for config_plugins - only search theme_remui records
+                        // Convert wildcards * to SQL % for LIKE queries
+                        $sql_searchterm = str_replace('*', '%', $searchterm);
+                        
                         if ($casesensitive) {
                             $sql = "SELECT id, {$field} as content, plugin, name
                                     FROM {{$table}}
@@ -205,7 +256,7 @@ class replacer {
                         }
                         $params = [
                             'plugin' => 'theme_remui',
-                            'searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'
+                            'searchterm' => '%' . $DB->sql_like_escape($sql_searchterm) . '%'
                         ];
                     } else if ($table === 'block_instances' && $field === 'configdata') {
                         // Special handling for block_instances - search Edwiser Page Builder blocks
@@ -228,13 +279,8 @@ class replacer {
                             // Decode to JSON for searching
                             $decoded_json = $this->decode_base64_serialized($record->content, false);
                             if ($decoded_json !== false) {
-                                // Search in decoded JSON content
-                                $found = false;
-                                if ($casesensitive) {
-                                    $found = (strpos($decoded_json, $searchterm) !== false);
-                                } else {
-                                    $found = (stripos($decoded_json, $searchterm) !== false);
-                                }
+                                // Search in decoded JSON content (supports wildcards)
+                                $found = $this->text_matches($decoded_json, $searchterm, $casesensitive);
                                 
                                 if ($found) {
                                     // Extract actual HTML for snippet display
@@ -242,11 +288,7 @@ class replacer {
                                     
                                     // Store BOTH: JSON for finding occurrences, HTML for display preference
                                     // We'll use whichever one contains the search term
-                                    if ($casesensitive) {
-                                        $html_has_match = (strpos($decoded_html, $searchterm) !== false);
-                                    } else {
-                                        $html_has_match = (stripos($decoded_html, $searchterm) !== false);
-                                    }
+                                    $html_has_match = $this->text_matches($decoded_html, $searchterm, $casesensitive);
                                     
                                     // Use HTML if it contains the match, otherwise use JSON
                                     $record->decoded_content = $html_has_match ? $decoded_html : $decoded_json;
@@ -260,6 +302,9 @@ class replacer {
                             (object)['total' => count($allrecords), 'matches' => count($records)]), 'info');
                     } else {
                         // Standard search for other tables
+                        // Convert wildcards * to SQL % for LIKE queries
+                        $sql_searchterm = str_replace('*', '%', $searchterm);
+                        
                         if ($casesensitive) {
                             $sql = "SELECT id, {$field} as content
                                     FROM {{$table}}
@@ -269,7 +314,7 @@ class replacer {
                                     FROM {{$table}}
                                     WHERE " . $DB->sql_like($field, ':searchterm', false, false);
                         }
-                        $params = ['searchterm' => '%' . $DB->sql_like_escape($searchterm) . '%'];
+                        $params = ['searchterm' => '%' . $DB->sql_like_escape($sql_searchterm) . '%'];
                         
                         // Execute the SQL query for non-Edwiser tables
                         $records = $DB->get_records_sql($sql, $params);
@@ -472,7 +517,7 @@ class replacer {
      * Recursively search and replace in any PHP data structure (arrays, objects, strings)
      *
      * @param mixed &$data Data to process (passed by reference)
-     * @param string $searchterm Search term
+     * @param string $searchterm Search term (may contain wildcards)
      * @param string $replacement Replacement text
      * @param bool $casesensitive Case sensitive search
      * @param int &$occurrences Occurrence counter (passed by reference)
@@ -480,20 +525,32 @@ class replacer {
      */
     protected function search_replace_recursive(&$data, $searchterm, $replacement, $casesensitive, &$occurrences, &$modified) {
         if (is_string($data)) {
-            // Count occurrences
-            if ($casesensitive) {
-                $count = substr_count($data, $searchterm);
+            // Count occurrences and replace
+            if ($this->has_wildcards($searchterm)) {
+                // Use regex for wildcard replacement
+                $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
+                $newdata = preg_replace($regex, $replacement, $data, -1, $count);
                 if ($count > 0) {
-                    $data = str_replace($searchterm, $replacement, $data);
+                    $data = $newdata;
                     $occurrences += $count;
                     $modified = true;
                 }
             } else {
-                $count = substr_count(strtolower($data), strtolower($searchterm));
-                if ($count > 0) {
-                    $data = str_ireplace($searchterm, $replacement, $data);
-                    $occurrences += $count;
-                    $modified = true;
+                // Standard string replacement
+                if ($casesensitive) {
+                    $count = substr_count($data, $searchterm);
+                    if ($count > 0) {
+                        $data = str_replace($searchterm, $replacement, $data);
+                        $occurrences += $count;
+                        $modified = true;
+                    }
+                } else {
+                    $count = substr_count(strtolower($data), strtolower($searchterm));
+                    if ($count > 0) {
+                        $data = str_ireplace($searchterm, $replacement, $data);
+                        $occurrences += $count;
+                        $modified = true;
+                    }
                 }
             }
         } else if (is_array($data)) {
@@ -545,7 +602,7 @@ class replacer {
      * Get context preview showing text around the match
      *
      * @param string $content Full content
-     * @param string $searchterm Search term
+     * @param string $searchterm Search term (may contain wildcards)
      * @param bool $casesensitive Case sensitive search
      * @return string Context preview
      */
@@ -554,10 +611,24 @@ class replacer {
         $plaintext = strip_tags($content);
         
         // Find position of search term
-        if ($casesensitive) {
-            $pos = strpos($plaintext, $searchterm);
+        $pos = false;
+        $matchlen = 0;
+        
+        if ($this->has_wildcards($searchterm)) {
+            // Use regex for wildcard search
+            $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
+            if (preg_match($regex, $plaintext, $matches, PREG_OFFSET_CAPTURE)) {
+                $pos = $matches[0][1];
+                $matchlen = strlen($matches[0][0]);
+            }
         } else {
-            $pos = stripos($plaintext, $searchterm);
+            // Standard string search
+            if ($casesensitive) {
+                $pos = strpos($plaintext, $searchterm);
+            } else {
+                $pos = stripos($plaintext, $searchterm);
+            }
+            $matchlen = strlen($searchterm);
         }
 
         if ($pos === false) {
@@ -566,7 +637,7 @@ class replacer {
 
         // Get 50 characters before and after
         $start = max(0, $pos - 50);
-        $length = strlen($searchterm) + 100;
+        $length = $matchlen + 100;
         $preview = substr($plaintext, $start, $length);
 
         // Clean up
@@ -585,51 +656,86 @@ class replacer {
      * Get all occurrences of search term in content with context
      *
      * @param string $content Full content
-     * @param string $searchterm Search term
+     * @param string $searchterm Search term (may contain wildcards)
      * @param bool $casesensitive Case sensitive search
      * @return array Array of occurrence contexts
      */
     private function get_all_occurrences($content, $searchterm, $casesensitive = false) {
         $occurrences = [];
-        $offset = 0;
-        $searchlen = strlen($searchterm);
         
-        // Search in the original content (not stripped) to match SQL results
-        while (true) {
-            // Find next occurrence in original content
-            if ($casesensitive) {
-                $pos = strpos($content, $searchterm, $offset);
-            } else {
-                $pos = stripos($content, $searchterm, $offset);
+        if ($this->has_wildcards($searchterm)) {
+            // Use regex for wildcard search
+            $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
+            if (preg_match_all($regex, $content, $matches, PREG_OFFSET_CAPTURE)) {
+                foreach ($matches[0] as $match) {
+                    $pos = $match[1];
+                    $matchtext = $match[0];
+                    $matchlen = strlen($matchtext);
+                    
+                    // Get a large context around this occurrence (1000 chars before and after)
+                    $contextstart = max(0, $pos - 1000);
+                    $contextlength = min(strlen($content) - $contextstart, $matchlen + 2000);
+                    $contextraw = substr($content, $contextstart, $contextlength);
+                    
+                    // Store raw content - escaping will be done at display time in JavaScript
+                    $context = $contextraw;
+                    
+                    // Add ellipsis if we're not at the start/end
+                    if ($contextstart > 0) {
+                        $context = '...' . $context;
+                    }
+                    if ($contextstart + $contextlength < strlen($content)) {
+                        $context .= '...';
+                    }
+                    
+                    $occurrences[] = [
+                        'position' => $pos,
+                        'context' => $context,
+                        'match' => $matchtext
+                    ];
+                }
             }
+        } else {
+            // Standard string search
+            $offset = 0;
+            $searchlen = strlen($searchterm);
             
-            if ($pos === false) {
-                break;
+            while (true) {
+                // Find next occurrence in original content
+                if ($casesensitive) {
+                    $pos = strpos($content, $searchterm, $offset);
+                } else {
+                    $pos = stripos($content, $searchterm, $offset);
+                }
+                
+                if ($pos === false) {
+                    break;
+                }
+                
+                // Get a large context around this occurrence (1000 chars before and after)
+                $contextstart = max(0, $pos - 1000);
+                $contextlength = min(strlen($content) - $contextstart, $searchlen + 2000);
+                $contextraw = substr($content, $contextstart, $contextlength);
+                
+                // Store raw content - escaping will be done at display time in JavaScript
+                $context = $contextraw;
+                
+                // Add ellipsis if we're not at the start/end
+                if ($contextstart > 0) {
+                    $context = '...' . $context;
+                }
+                if ($contextstart + $contextlength < strlen($content)) {
+                    $context .= '...';
+                }
+                
+                $occurrences[] = [
+                    'position' => $pos,
+                    'context' => $context,
+                    'match' => substr($content, $pos, $searchlen)
+                ];
+                
+                $offset = $pos + 1; // Move past this occurrence
             }
-            
-            // Get a large context around this occurrence (1000 chars before and after)
-            $contextstart = max(0, $pos - 1000);
-            $contextlength = min(strlen($content) - $contextstart, $searchlen + 2000);
-            $contextraw = substr($content, $contextstart, $contextlength);
-            
-            // Store raw content - escaping will be done at display time in JavaScript
-            $context = $contextraw;
-            
-            // Add ellipsis if we're not at the start/end
-            if ($contextstart > 0) {
-                $context = '...' . $context;
-            }
-            if ($contextstart + $contextlength < strlen($content)) {
-                $context .= '...';
-            }
-            
-            $occurrences[] = [
-                'position' => $pos,
-                'context' => $context,
-                'match' => substr($content, $pos, $searchlen)
-            ];
-            
-            $offset = $pos + 1; // Move past this occurrence
         }
         
         return $occurrences;
@@ -829,9 +935,10 @@ class replacer {
                     $section = $DB->get_record('course_sections', ['id' => $recordid], 'course, section');
                     if ($section) {
                         $course = $DB->get_record('course', ['id' => $section->course], 'shortname');
-                        return $course ? "Course section in: {$course->shortname}" : "Section ID: {$recordid}";
+                        return $course ? get_string('desc_coursesection_in', 'local_textplus', $course->shortname) : 
+                            get_string('desc_section_id', 'local_textplus', $recordid);
                     }
-                    return "Section ID: {$recordid}";
+                    return get_string('desc_section_id', 'local_textplus', $recordid);
 
                 case 'page':
                 case 'label':
@@ -853,47 +960,61 @@ class replacer {
                     $activity = $DB->get_record($table, ['id' => $recordid], 'name, course');
                     if ($activity) {
                         $course = $DB->get_record('course', ['id' => $activity->course], 'shortname');
-                        $coursename = $course ? $course->shortname : "Course {$activity->course}";
-                        return ucfirst($table) . ": {$activity->name} (in {$coursename})";
+                        $coursename = $course ? $course->shortname : get_string('desc_course_label', 'local_textplus', $activity->course);
+                        return get_string('desc_activity_in', 'local_textplus', (object)[
+                            'type' => ucfirst($table),
+                            'name' => $activity->name,
+                            'course' => $coursename
+                        ]);
                     }
-                    return ucfirst($table) . " ID: {$recordid}";
+                    return get_string('desc_activity_id', 'local_textplus', (object)[
+                        'type' => ucfirst($table),
+                        'id' => $recordid
+                    ]);
 
                 case 'forum_posts':
                     $post = $DB->get_record('forum_posts', ['id' => $recordid], 'discussion');
                     if ($post) {
                         $discussion = $DB->get_record('forum_discussions', ['id' => $post->discussion], 'name, forum');
                         if ($discussion) {
-                            return "Forum post in: {$discussion->name}";
+                            return get_string('desc_forumpost_in', 'local_textplus', $discussion->name);
                         }
                     }
-                    return "Forum post ID: {$recordid}";
+                    return get_string('desc_forumpost_id', 'local_textplus', $recordid);
 
                 case 'book_chapters':
                     $chapter = $DB->get_record('book_chapters', ['id' => $recordid], 'title, bookid');
                     if ($chapter) {
                         $book = $DB->get_record('book', ['id' => $chapter->bookid], 'name');
-                        return $book ? "Book chapter: {$chapter->title} (in {$book->name})" : "Chapter: {$chapter->title}";
+                        return $book ? get_string('desc_bookchapter_in', 'local_textplus', (object)[
+                            'title' => $chapter->title,
+                            'book' => $book->name
+                        ]) : get_string('desc_chapter', 'local_textplus', $chapter->title);
                     }
-                    return "Book chapter ID: {$recordid}";
+                    return get_string('desc_bookchapter_id', 'local_textplus', $recordid);
 
                 case 'glossary_entries':
                     $entry = $DB->get_record('glossary_entries', ['id' => $recordid], 'concept, glossaryid');
                     if ($entry) {
                         $glossary = $DB->get_record('glossary', ['id' => $entry->glossaryid], 'name');
-                        return $glossary ? "Glossary entry: {$entry->concept} (in {$glossary->name})" : "Entry: {$entry->concept}";
+                        return $glossary ? get_string('desc_glossaryentry_in', 'local_textplus', (object)[
+                            'concept' => $entry->concept,
+                            'glossary' => $glossary->name
+                        ]) : get_string('desc_entry', 'local_textplus', $entry->concept);
                     }
-                    return "Glossary entry ID: {$recordid}";
+                    return get_string('desc_glossaryentry_id', 'local_textplus', $recordid);
 
                 case 'wiki_pages':
                     $page = $DB->get_record('wiki_pages', ['id' => $recordid], 'title, subwikiid');
                     if ($page) {
-                        return "Wiki page: {$page->title}";
+                        return get_string('desc_wikipage', 'local_textplus', $page->title);
                     }
-                    return "Wiki page ID: {$recordid}";
+                    return get_string('desc_wikipage_id', 'local_textplus', $recordid);
 
                 case 'question':
                     $question = $DB->get_record('question', ['id' => $recordid], 'name');
-                    return $question ? "Question: {$question->name}" : "Question ID: {$recordid}";
+                    return $question ? get_string('desc_question', 'local_textplus', $question->name) : 
+                        get_string('desc_question_id', 'local_textplus', $recordid);
 
                 case 'block_instances':
                     // Check if this is an Edwiser Page Builder block
@@ -902,74 +1023,96 @@ class replacer {
                         $pagetype = ($block->pagetypepattern === 'epb-page-publish') ? 'edw_pages' : 'edw_pages_draft';
                         $page = $DB->get_record($pagetype, ['id' => $block->subpagepattern], 'pagename');
                         if ($page) {
-                            $status = ($block->pagetypepattern === 'epb-page-publish') ? 'Published' : 'Draft';
+                            $status = ($block->pagetypepattern === 'epb-page-publish') ? 
+                                get_string('desc_published_status', 'local_textplus') : 
+                                get_string('desc_draft_status', 'local_textplus');
                             $blockname = ucwords(str_replace('_', ' ', $block->blockname));
-                            return "Edwiser Page Builder Block ({$blockname}) on {$status} Page: {$page->pagename}";
+                            return get_string('desc_epb_block', 'local_textplus', (object)[
+                                'blockname' => $blockname,
+                                'status' => $status,
+                                'pagename' => $page->pagename
+                            ]);
                         }
-                        return "Edwiser Page Builder Block on Page ID: {$block->subpagepattern}";
+                        return get_string('desc_epb_block_pageid', 'local_textplus', $block->subpagepattern);
                     }
-                    return "Block ID: {$recordid}";
+                    return get_string('desc_block_id', 'local_textplus', $recordid);
 
                 case 'edw_pages':
                     $page = $DB->get_record('edw_pages', ['id' => $recordid], 'pagename, visible');
                     if ($page) {
-                        $status = $page->visible ? '' : ' (Hidden)';
-                        return "Edwiser Page Builder - Published Page: {$page->pagename}{$status}";
+                        $status = $page->visible ? '' : get_string('desc_hidden_status', 'local_textplus');
+                        return get_string('desc_epb_published_page', 'local_textplus', (object)[
+                            'pagename' => $page->pagename,
+                            'status' => $status
+                        ]);
                     }
-                    return "Edwiser Published Page ID: {$recordid}";
+                    return get_string('desc_epb_published_id', 'local_textplus', $recordid);
 
                 case 'edw_pages_draft':
                     $page = $DB->get_record('edw_pages_draft', ['id' => $recordid], 'pagename');
                     if ($page) {
-                        return "Edwiser Page Builder - Draft Page: {$page->pagename}";
+                        return get_string('desc_epb_draft_page', 'local_textplus', $page->pagename);
                     }
-                    return "Edwiser Draft Page ID: {$recordid}";
+                    return get_string('desc_epb_draft_id', 'local_textplus', $recordid);
 
                 case 'edw_page_blocks':
                     $block = $DB->get_record('edw_page_blocks', ['id' => $recordid], 'title, label');
                     if ($block) {
                         $name = $block->title ?: $block->label;
-                        return "Edwiser Page Builder - Reusable Block: {$name}";
+                        return get_string('desc_epb_reusable_block', 'local_textplus', $name);
                     }
-                    return "Edwiser Block ID: {$recordid}";
+                    return get_string('desc_epb_block_id', 'local_textplus', $recordid);
 
                 case 'edw_page_block_layouts':
                     $layout = $DB->get_record('edw_page_block_layouts', ['id' => $recordid], 'title, label, belongsto');
                     if ($layout) {
                         $name = $layout->title ?: $layout->label;
                         $parent = $layout->belongsto ? " (in {$layout->belongsto})" : '';
-                        return "Edwiser Page Builder - Block Layout: {$name}{$parent}";
+                        return get_string('desc_epb_block_layout', 'local_textplus', (object)[
+                            'name' => $name,
+                            'parent' => $parent
+                        ]);
                     }
-                    return "Edwiser Block Layout ID: {$recordid}";
+                    return get_string('desc_epb_layout_id', 'local_textplus', $recordid);
 
                 case 'format_remuilayout':
                     $layout = $DB->get_record('format_remuilayout', ['id' => $recordid], 'courseid, sectionid');
                     if ($layout) {
                         $course = $DB->get_record('course', ['id' => $layout->courseid], 'fullname');
-                        $coursename = $course ? $course->fullname : "Course ID: {$layout->courseid}";
+                        $coursename = $course ? $course->fullname : get_string('desc_courseid_label', 'local_textplus', $layout->courseid);
                         if ($layout->sectionid) {
                             $section = $DB->get_record('course_sections', ['id' => $layout->sectionid], 'name, section');
-                            $sectionname = $section ? ($section->name ?: "Section {$section->section}") : "Section ID: {$layout->sectionid}";
-                            return "Edwiser RemUI Layout: {$coursename} - {$sectionname}";
+                            $sectionname = $section ? ($section->name ?: get_string('desc_section_label', 'local_textplus', $section->section)) : 
+                                get_string('desc_sectionid_label', 'local_textplus', $layout->sectionid);
+                            return get_string('desc_remui_layout_section', 'local_textplus', (object)[
+                                'course' => $coursename,
+                                'section' => $sectionname
+                            ]);
                         }
-                        return "Edwiser RemUI Layout: {$coursename}";
+                        return get_string('desc_remui_layout', 'local_textplus', $coursename);
                     }
-                    return "Edwiser RemUI Layout ID: {$recordid}";
+                    return get_string('desc_remui_layout_id', 'local_textplus', $recordid);
 
                 case 'config_plugins':
                     $config = $DB->get_record('config_plugins', ['id' => $recordid], 'plugin, name');
                     if ($config) {
                         // Format the config name for better readability
                         $configname = ucwords(str_replace(['_', '-'], ' ', $config->name));
-                        return "Edwiser RemUI Theme Setting: {$configname}";
+                        return get_string('desc_remui_theme_setting', 'local_textplus', $configname);
                     }
-                    return "Config ID: {$recordid}";
+                    return get_string('desc_config_id', 'local_textplus', $recordid);
 
                 default:
-                    return ucfirst($table) . " ID: {$recordid}";
+                    return get_string('desc_default_id', 'local_textplus', (object)[
+                        'type' => ucfirst($table),
+                        'id' => $recordid
+                    ]);
             }
         } catch (\Exception $e) {
-            return ucfirst($table) . " ID: {$recordid}";
+            return get_string('desc_default_id', 'local_textplus', (object)[
+                'type' => ucfirst($table),
+                'id' => $recordid
+            ]);
         }
     }
 
@@ -1043,12 +1186,19 @@ class replacer {
                     );
                 } else {
                     // Perform standard replacement
-                    if ($casesensitive) {
-                        $newcontent = str_replace($searchterm, $replacementtext, $currentcontent);
-                        $occurrences = substr_count($currentcontent, $searchterm);
+                    if ($this->has_wildcards($searchterm)) {
+                        // Use regex replacement for wildcards
+                        $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
+                        $newcontent = preg_replace($regex, $replacementtext, $currentcontent, -1, $occurrences);
                     } else {
-                        $newcontent = str_ireplace($searchterm, $replacementtext, $currentcontent);
-                        $occurrences = substr_count(strtolower($currentcontent), strtolower($searchterm));
+                        // Standard string replacement
+                        if ($casesensitive) {
+                            $newcontent = str_replace($searchterm, $replacementtext, $currentcontent);
+                            $occurrences = substr_count($currentcontent, $searchterm);
+                        } else {
+                            $newcontent = str_ireplace($searchterm, $replacementtext, $currentcontent);
+                            $occurrences = substr_count(strtolower($currentcontent), strtolower($searchterm));
+                        }
                     }
                 }
 
@@ -1099,7 +1249,7 @@ class replacer {
      * @param string $message Log message
      */
     private function add_replacement_log($table, $field, $id, $status, $message) {
-        $this->replacementlog[] = [
+        $this->replacement_log[] = [
             'table' => $table,
             'field' => $field,
             'id' => $id,
@@ -1146,7 +1296,7 @@ class replacer {
      * @return array Replacement log entries
      */
     public function get_replacement_log() {
-        return $this->replacementlog;
+        return $this->replacement_log;
     }
 
     /**

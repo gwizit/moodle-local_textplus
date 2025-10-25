@@ -10,8 +10,28 @@ Write-Host ""
 # Set locations dynamically based on script location
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PluginDir = Join-Path $ScriptDir "textplus"
+$VersionFile = Join-Path $PluginDir "version.php"
 $OutputDir = $ScriptDir
-$OutputFile = "$OutputDir\moodle-local_textplus-v1.0.0.zip"
+
+# Read version from version.php
+$Version = "1.0.0"  # Default fallback
+if (Test-Path $VersionFile) {
+    try {
+        $VersionContent = Get-Content $VersionFile -Raw
+        if ($VersionContent -match "\`$plugin->release\s*=\s*'v?([^']+)'") {
+            $Version = $matches[1]
+            Write-Host "Detected version: $Version" -ForegroundColor Green
+        } else {
+            Write-Host "WARNING: Could not parse version from version.php, using default" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "WARNING: Error reading version.php, using default version" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "WARNING: version.php not found, using default version" -ForegroundColor Yellow
+}
+
+$OutputFile = "$OutputDir\moodle-local_textplus-v$Version.zip"
 
 # Check if plugin directory exists
 if (-not (Test-Path $PluginDir)) {
@@ -33,7 +53,7 @@ if (Test-Path $OutputFile) {
     } catch {
         Write-Host "Could not remove existing file. Trying alternate name..." -ForegroundColor Yellow
         $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-        $OutputFile = "$OutputDir\moodle-local_textplus-v1.0.0-$timestamp.zip"
+        $OutputFile = "$OutputDir\moodle-local_textplus-v$Version-$timestamp.zip"
         Write-Host "New output file: $OutputFile" -ForegroundColor Cyan
     }
 }

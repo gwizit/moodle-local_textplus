@@ -33,7 +33,7 @@ $string['textplus:view'] = 'View TextPlus tool';
 $string['heading'] = 'TextPlus - Database Text Search & Replace Tool';
 $string['description'] = 'This powerful Moodle plugin helps administrators search and selectively replace text across their entire Moodle database. What makes it different from Moodle\'s built-in tools or other plugins is that it lets you preview every change before it happens. You can see exactly which code snippets and text will be updated, giving you full control and peace of mind. With its easy step-by-step wizard and strong security features, you can safely update course content, activities, pages, and labels with confidence.<br><br><strong style="color: #d32f2f;">⚠️ IMPORTANT WARNING:</strong> This is a powerful tool that makes <strong>permanent changes</strong> to your Moodle database. Administrators should use this plugin with <strong>extreme caution</strong>. <strong>ALWAYS create a complete database backup</strong> before using this tool. Text replacements <strong>cannot be undone</strong>. Test in dry run mode first, then verify results carefully before executing changes on a production site.';
 $string['searchterm'] = 'Search text';
-$string['searchterm_help'] = 'Enter the exact text string you want to find in the database (case-sensitive by default). This will search through course content, page text, activity descriptions, labels, and other text fields.';
+$string['searchterm_help'] = 'Enter the text string you want to find in the database. You can use the asterisk (*) as a wildcard to match any characters. For example: "http://*.example.com" will match "http://www.example.com", "http://blog.example.com", etc. Case-sensitive search can be toggled below.';
 $string['replacementtext'] = 'Replacement text';
 $string['replacementtext_help'] = 'Enter the text that will replace all instances of the search text. Leave empty to remove the search text entirely.';
 $string['casesensitive'] = 'Case sensitive search';
@@ -140,6 +140,7 @@ $string['privacy:metadata:local_textplus_log:timemodified'] = 'When the operatio
 
 // Log strings.
 $string['eventtextreplaced'] = 'Text replaced';
+$string['event_description'] = 'The user with id \'{$a->userid}\' replaced text matching term \'{$a->searchterm}\'. Database items replaced: {$a->itemsreplaced}.';
 
 // Credits.
 $string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank">G Wiz IT Solutions</a> | <a href="https://square.link/u/F3EXIaVp" target="_blank">💝 Support This Project</a>';
@@ -180,3 +181,45 @@ $string['processing_replaced'] = '✓ Replaced {$a} occurrence(s)';
 $string['processing_would_replace'] = '✓ Would replace {$a} occurrence(s) (DRY RUN)';
 $string['processing_error'] = 'Error: {$a}';
 $string['processing_completed'] = 'Completed: {$a->replaced} items processed, {$a->failed} failed';
+
+// Item description strings (used in get_item_description method).
+$string['desc_coursesection_in'] = 'Course section in: {$a}';
+$string['desc_section_id'] = 'Section ID: {$a}';
+$string['desc_activity_in'] = '{$a->type}: {$a->name} (in {$a->course})';
+$string['desc_activity_id'] = '{$a->type} ID: {$a->id}';
+$string['desc_course_label'] = 'Course {$a}';
+$string['desc_forumpost_in'] = 'Forum post in: {$a}';
+$string['desc_forumpost_id'] = 'Forum post ID: {$a}';
+$string['desc_bookchapter_in'] = 'Book chapter: {$a->title} (in {$a->book})';
+$string['desc_chapter'] = 'Chapter: {$a}';
+$string['desc_bookchapter_id'] = 'Book chapter ID: {$a}';
+$string['desc_glossaryentry_in'] = 'Glossary entry: {$a->concept} (in {$a->glossary})';
+$string['desc_entry'] = 'Entry: {$a}';
+$string['desc_glossaryentry_id'] = 'Glossary entry ID: {$a}';
+$string['desc_wikipage'] = 'Wiki page: {$a}';
+$string['desc_wikipage_id'] = 'Wiki page ID: {$a}';
+$string['desc_question'] = 'Question: {$a}';
+$string['desc_question_id'] = 'Question ID: {$a}';
+$string['desc_epb_block'] = 'Edwiser Page Builder Block ({$a->blockname}) on {$a->status} Page: {$a->pagename}';
+$string['desc_epb_block_pageid'] = 'Edwiser Page Builder Block on Page ID: {$a}';
+$string['desc_block_id'] = 'Block ID: {$a}';
+$string['desc_epb_published_page'] = 'Edwiser Page Builder - Published Page: {$a->pagename}{$a->status}';
+$string['desc_epb_published_id'] = 'Edwiser Published Page ID: {$a}';
+$string['desc_epb_draft_page'] = 'Edwiser Page Builder - Draft Page: {$a}';
+$string['desc_epb_draft_id'] = 'Edwiser Draft Page ID: {$a}';
+$string['desc_epb_reusable_block'] = 'Edwiser Page Builder - Reusable Block: {$a}';
+$string['desc_epb_block_id'] = 'Edwiser Block ID: {$a}';
+$string['desc_epb_block_layout'] = 'Edwiser Page Builder - Block Layout: {$a->name}{$a->parent}';
+$string['desc_epb_layout_id'] = 'Edwiser Block Layout ID: {$a}';
+$string['desc_remui_layout_section'] = 'Edwiser RemUI Layout: {$a->course} - {$a->section}';
+$string['desc_remui_layout'] = 'Edwiser RemUI Layout: {$a}';
+$string['desc_remui_layout_id'] = 'Edwiser RemUI Layout ID: {$a}';
+$string['desc_remui_theme_setting'] = 'Edwiser RemUI Theme Setting: {$a}';
+$string['desc_config_id'] = 'Config ID: {$a}';
+$string['desc_section_label'] = 'Section {$a}';
+$string['desc_sectionid_label'] = 'Section ID: {$a}';
+$string['desc_courseid_label'] = 'Course ID: {$a}';
+$string['desc_published_status'] = 'Published';
+$string['desc_draft_status'] = 'Draft';
+$string['desc_hidden_status'] = ' (Hidden)';
+$string['desc_default_id'] = '{$a->type} ID: {$a->id}';

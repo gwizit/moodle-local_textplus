@@ -56,8 +56,8 @@ class local_textplus_renderer extends plugin_renderer_base {
      * @return string HTML output
      */
     public function render_item_selection($database_items, $search_term = '') {
-        $itemselection = new \local_textplus\output\item_selection($database_items, $search_term);
-        return $this->render_from_template('local_textplus/item_selection', $itemselection->export_for_template($this));
+        $item_selection = new \local_textplus\output\item_selection($database_items, $search_term);
+        return $this->render_from_template('local_textplus/item_selection', $item_selection->export_for_template($this));
     }
 
     /**
@@ -67,8 +67,8 @@ class local_textplus_renderer extends plugin_renderer_base {
      * @return string HTML output
      */
     public function render_step_indicator($current_step) {
-        $stepindicator = new \local_textplus\output\step_indicator($current_step);
-        return $this->render_from_template('local_textplus/step_indicator', $stepindicator->export_for_template($this));
+        $step_indicator = new \local_textplus\output\step_indicator($current_step);
+        return $this->render_from_template('local_textplus/step_indicator', $step_indicator->export_for_template($this));
     }
 
     /**
@@ -78,7 +78,7 @@ class local_textplus_renderer extends plugin_renderer_base {
      * @return string HTML output
      */
     public function render_no_items_found($search_term) {
-        $noitemsfound = new \local_textplus\output\no_items_found($search_term);
-        return $this->render_from_template('local_textplus/no_items_found', $noitemsfound->export_for_template($this));
+        $no_items_found = new \local_textplus\output\no_items_found($search_term);
+        return $this->render_from_template('local_textplus/no_items_found', $no_items_found->export_for_template($this));
     }
 }
