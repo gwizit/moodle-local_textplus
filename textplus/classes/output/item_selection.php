@@ -112,7 +112,8 @@ class item_selection implements renderable, templatable {
                             'number' => $occ_index + 1,
                             'context' => base64_encode($context_data),
                             'match' => base64_encode($match_data),
-                            'location' => base64_encode($location)
+                            'location' => base64_encode($location),
+                            'searchterm' => base64_encode($this->search_term)
                         ];
                     }
                 }

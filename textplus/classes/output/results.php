@@ -82,7 +82,7 @@ class results implements renderable, templatable {
 
         // Filter replacement log for successful replacements only.
         $successful_items = array_filter($replacement_log, function($entry) {
-            return $entry['success'];
+            return isset($entry['status']) && $entry['status'] === 'success';
         });
 
         // Statistics.
@@ -127,12 +127,12 @@ class results implements renderable, templatable {
                     $has_preview = true;
                 }
 
-                $message_class = $entry['success'] ? 'text-success' : 'text-danger';
+                $message_class = ($entry['status'] === 'success') ? 'text-success' : 'text-danger';
 
                 $data->database_items[] = [
-                    'table_name' => s($entry['table_name'] ?? ''),
-                    'field_name' => s($entry['field_name'] ?? ''),
-                    'record_id' => (int)($entry['record_id'] ?? 0),
+                    'table_name' => s($entry['table'] ?? ''),
+                    'field_name' => s($entry['field'] ?? ''),
+                    'record_id' => (int)($entry['id'] ?? 0),
                     'message' => s($entry['message']),
                     'message_class' => $message_class,
                     'has_preview' => $has_preview,

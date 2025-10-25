@@ -288,7 +288,7 @@ if ($from_form = $mform->get_data()) {
         // Display results.
         echo $OUTPUT->header();
         $renderer = $PAGE->get_renderer('local_textplus');
-        echo $renderer->render_results($replacer, $config['dry_run']);
+        echo $renderer->render_results($replacer, $items_to_process, $config['dry_run']);
         
         // Clear cache (Start Over button is rendered by the renderer).
         $cache->delete('wizard');

@@ -92,9 +92,10 @@ class replacer {
     private function wildcard_to_regex($pattern, $casesensitive = false) {
         // Escape special regex characters except *
         $pattern = preg_quote($pattern, '/');
-        // Replace escaped \* with .*
-        $pattern = str_replace('\*', '.*', $pattern);
-        // Add anchors and modifiers
+        // Replace escaped \* with \S* (match non-whitespace characters only)
+        // This ensures wildcards stop at spaces/newlines/tabs
+        $pattern = str_replace('\*', '\S*', $pattern);
+        // Add word boundary and modifiers
         $modifier = $casesensitive ? '' : 'i';
         return '/' . $pattern . '/' . $modifier;
     }
