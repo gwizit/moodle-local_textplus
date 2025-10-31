@@ -5,7 +5,7 @@
 **Type:** Local Plugin (local_textplus)  
 **Developer:** G Wiz IT Solutions  
 **Website:** https://gwizit.com  
-**Version:** 3.0.5  
+**Version:** 3.0.6  
 **License:** GNU GPL v3 or later
 
 ---

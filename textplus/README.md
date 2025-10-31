@@ -4,13 +4,22 @@ This powerful Moodle plugin helps administrators search and selectively replace 
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** 3.0.5  
+**Version:** 3.0.6  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
 ---
 
-## What's New in Version 3.0.5
+## What's New in Version 3.0.6
+
+### 🔒 Security & Compliance Updates (October 31, 2025)
+- **Security Hardening** - Replaced all PARAM_RAW with proper parameter types (PARAM_ALPHA, PARAM_TEXT, PARAM_ALPHANUMEXT)
+- **Frankenstyle Compliance** - All global functions now use local_textplus_ prefix to prevent namespace collisions
+- **Internationalization** - All hardcoded text in templates moved to language strings for full translatability
+- **CSS Namespace Compliance** - All CSS selectors properly namespaced with .local-textplus prefix
+- **Cache Definition** - Added missing language string for cache definition (cachedef_wizarddata)
+
+### Previous Updates (Version 3.0.5)
 
 ### 🏗️ Modern Architecture Refactoring
 - **Mustache Templates** - Complete separation of presentation from logic

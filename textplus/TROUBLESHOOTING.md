@@ -1256,4 +1256,4 @@ When reporting issues, include:
 
 ---
 
-*Last Updated: Version 3.0.5 - October 24, 2025*
+*Last Updated: Version 3.0.6 - October 31, 2025*
