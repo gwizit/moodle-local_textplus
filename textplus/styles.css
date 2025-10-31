@@ -248,17 +248,17 @@
     margin-bottom: 1.5rem;
 }
 
-.local-textplus-step-indicator .badge-current {
+.local-textplus-step-indicator .local-textplus-badge-current {
     background-color: #007bff;
     color: #fff;
 }
 
-.local-textplus-step-indicator .badge-completed {
+.local-textplus-step-indicator .local-textplus-badge-completed {
     background-color: #28a745;
     color: #fff;
 }
 
-.local-textplus-step-indicator .badge-upcoming {
+.local-textplus-step-indicator .local-textplus-badge-upcoming {
     background-color: #6c757d;
     color: #fff;
 }
@@ -386,14 +386,14 @@
 }
 
 /* Badge styling */
-.badge {
+.local-textplus-badge {
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.875em;
     font-weight: 500;
 }
 
-.badge-primary {
+.local-textplus-badge-primary {
     background-color: #007bff;
     color: #fff;
 }

@@ -214,16 +214,16 @@ class replacer_form extends \moodleform {
             3 => get_string('step3_name', 'local_textplus'),
         ];
 
-        $html = '<div class="step-indicator mb-4">';
+        $html = '<div class="local-textplus-step-indicator mb-4">';
         $html .= '<ol class="list-inline">';
         foreach ($steps as $num => $name) {
-            $class = 'list-inline-item badge ';
+            $class = 'list-inline-item local-textplus-badge ';
             if ($num == $currentstep) {
-                $class .= 'badge-primary';
+                $class .= 'local-textplus-badge-current';
             } else if ($num < $currentstep) {
-                $class .= 'badge-success';
+                $class .= 'local-textplus-badge-completed';
             } else {
-                $class .= 'badge-secondary';
+                $class .= 'local-textplus-badge-upcoming';
             }
             $html .= '<li class="' . $class . '">' . $num . '. ' . s($name) . '</li>';
         }
