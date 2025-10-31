@@ -33,7 +33,7 @@ require_once($CFG->libdir . '/adminlib.php');
  * @param stdClass $wizard_data Wizard data from cache
  * @return stdClass Form data with only scalar values
  */
-function get_form_data_from_wizard($wizard_data) {
+function local_textplus_get_form_data_from_wizard($wizard_data) {
     $form_data = new stdClass();
     $form_data->searchterm = $wizard_data->searchterm;
     $form_data->casesensitive = $wizard_data->casesensitive;
@@ -115,7 +115,7 @@ if (!$wizard_data) {
 
 // Prepare form custom data.
 // Only pass scalar values to form - arrays cause htmlspecialchars errors
-$form_data = get_form_data_from_wizard($wizard_data);
+$form_data = local_textplus_get_form_data_from_wizard($wizard_data);
 
 $custom_data = [
     'formdata' => $form_data,
@@ -161,7 +161,7 @@ if ($step == 2 && $next_btn) {
     // Move to step 3.
     $step = 3;
     $custom_data['step'] = $step;
-    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+    $custom_data['formdata'] = local_textplus_get_form_data_from_wizard($wizard_data);
     
     $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
@@ -172,7 +172,7 @@ if ($step == 2 && $back_btn) {
     $step = 1;
     $wizard_data = $cache->get('wizard');
     $custom_data['step'] = $step;
-    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+    $custom_data['formdata'] = local_textplus_get_form_data_from_wizard($wizard_data);
     $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
 
@@ -182,7 +182,7 @@ if ($step == 3 && $back_btn) {
     $step = 2;
     $wizard_data = $cache->get('wizard');
     $custom_data['step'] = $step;
-    $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+    $custom_data['formdata'] = local_textplus_get_form_data_from_wizard($wizard_data);
     $mform = new \local_textplus\form\replacer_form(null, $custom_data);
 }
 
@@ -221,7 +221,7 @@ if ($from_form = $mform->get_data()) {
         // Move to step 2.
         $step = 2;
         $custom_data['step'] = $step;
-        $custom_data['formdata'] = get_form_data_from_wizard($wizard_data);
+        $custom_data['formdata'] = local_textplus_get_form_data_from_wizard($wizard_data);
         $mform = new \local_textplus\form\replacer_form(null, $custom_data);
         
     // STEP 3: Execute text replacement
