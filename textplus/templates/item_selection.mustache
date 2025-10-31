@@ -63,7 +63,7 @@
                     <div class="local-textplus-item-table">{{table_info}}</div>
                     {{#has_occurrences}}
                     <div class="local-textplus-item-occurrences">
-                        <strong>{{occurrence_count}} occurrence{{occurrence_plural}}: </strong>
+                        <strong>{{occurrence_text}} </strong>
                         {{#occurrences}}
                         <a href="#" class="local-textplus-occurrence-link" 
                            data-context="{{context}}"
@@ -90,7 +90,7 @@
 <div id="local-textplus-occurrence-modal" class="local-textplus-occurrence-modal">
     <div class="local-textplus-occurrence-modal-content">
         <div class="local-textplus-occurrence-modal-header">
-            <h3 id="local-textplus-occurrence-modal-title">Code Snippet</h3>
+            <h3 id="local-textplus-occurrence-modal-title">{{codesnippet_label}}</h3>
             <button type="button" class="local-textplus-occurrence-modal-close">&times;</button>
         </div>
         <div class="local-textplus-occurrence-modal-body">

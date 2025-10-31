@@ -118,16 +118,22 @@ class item_selection implements renderable, templatable {
                     }
                 }
                 
+                // Build occurrence text with language string
+                $occ_count = count($occurrence_data);
+                $occurrence_text = $occ_count . ' ' . get_string(
+                    $occ_count > 1 ? 'occurrences_plural' : 'occurrence',
+                    'local_textplus'
+                ) . ':';
+                
                 $data->items[] = [
                     'item_key' => $item_key,
                     'checkbox_id' => $checkbox_id,
                     'location' => s($location),
                     'url' => $url,
                     'has_url' => !empty($url),
-                    'table_info' => s($table) . '.' . s($field) . ' (ID: ' . (int)$id . ')',
+                    'table_info' => s($table) . '.' . s($field) . ' (' . get_string('id_label', 'local_textplus') . ': ' . (int)$id . ')',
                     'has_occurrences' => !empty($occurrence_data),
-                    'occurrence_count' => count($occurrence_data),
-                    'occurrence_plural' => count($occurrence_data) > 1 ? 's' : '',
+                    'occurrence_text' => $occurrence_text,
                     'occurrences' => $occurrence_data
                 ];
             }
@@ -139,6 +145,7 @@ class item_selection implements renderable, templatable {
         $data->warning_text = get_string('warning_selectall', 'local_textplus');
         $data->back_label = get_string('back', 'local_textplus');
         $data->next_label = get_string('next', 'local_textplus');
+        $data->codesnippet_label = get_string('codesnippet', 'local_textplus');
 
         return $data;
     }

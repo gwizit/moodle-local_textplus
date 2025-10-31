@@ -97,6 +97,8 @@ $string['selectall'] = 'Select / Deselect all';
 $string['confirmreplacement'] = 'Replace in selected items';
 $string['confirmreplacement_confirm'] = 'Are you sure you want to replace text in';
 $string['error_noreplacementtext'] = 'Please enter replacement text.';
+$string['codesnippet'] = 'Code Snippet';
+$string['id_label'] = 'ID';
 $string['directoriesscanned'] = 'Database Tables Searched';
 $string['directories_list'] = 'The plugin searches text content in tables: course, course_sections, page, label, book_chapters, forum_posts, quiz, assign, glossary, wiki_pages, and other activity tables.';
 
@@ -131,6 +133,9 @@ $string['defaultsearchterm_desc'] = 'The default text to search for in the datab
 $string['defaultmode'] = 'Default execution mode';
 $string['defaultmode_desc'] = 'Whether to run in dry run mode by default (recommended).';
 
+// Cache definitions.
+$string['cachedef_wizarddata'] = 'Temporary wizard state data for the multi-step replacement process';
+
 // Privacy.
 $string['privacy:metadata:local_textplus_log'] = 'Log of text replacement operations';
 $string['privacy:metadata:local_textplus_log:userid'] = 'The user who performed the operation';
@@ -149,6 +154,8 @@ $string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> P
 // Additional template strings.
 $string['totaloccurrences'] = 'Total occurrences';
 $string['occurrences'] = 'occurrence(s)';
+$string['occurrence'] = 'occurrence';
+$string['occurrences_plural'] = 'occurrences';
 $string['viewoccurrences'] = 'View occurrences';
 $string['deselectall'] = 'Deselect all';
 $string['preview'] = 'Preview';

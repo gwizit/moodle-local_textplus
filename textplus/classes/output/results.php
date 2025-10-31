@@ -128,11 +128,13 @@ class results implements renderable, templatable {
                 }
 
                 $message_class = ($entry['status'] === 'success') ? 'text-success' : 'text-danger';
+                
+                // Format location string with language string for ID
+                $location_string = s($entry['table'] ?? '') . ' → ' . s($entry['field'] ?? '') . 
+                    ' (' . get_string('id_label', 'local_textplus') . ': ' . (int)($entry['id'] ?? 0) . ')';
 
                 $data->database_items[] = [
-                    'table_name' => s($entry['table'] ?? ''),
-                    'field_name' => s($entry['field'] ?? ''),
-                    'record_id' => (int)($entry['id'] ?? 0),
+                    'location_string' => $location_string,
                     'message' => s($entry['message']),
                     'message_class' => $message_class,
                     'has_preview' => $has_preview,
