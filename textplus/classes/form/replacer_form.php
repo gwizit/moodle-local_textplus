@@ -59,7 +59,7 @@ class replacer_form extends \moodleform {
 
         // Session key.
         $mform->addElement('hidden', 'sesskey', sesskey());
-        $mform->setType('sesskey', PARAM_RAW);
+        $mform->setType('sesskey', PARAM_ALPHANUMEXT);
 
         // Current step.
         $mform->addElement('hidden', 'step', $step);
@@ -185,7 +185,7 @@ class replacer_form extends \moodleform {
         // Hidden field for selected items (will be populated from session).
         if (isset($formdata->selecteditems)) {
             $mform->addElement('hidden', 'selecteditems', $formdata->selecteditems);
-            $mform->setType('selecteditems', PARAM_RAW);
+            $mform->setType('selecteditems', PARAM_TEXT);
         }
 
         // Action buttons.
@@ -193,7 +193,7 @@ class replacer_form extends \moodleform {
         $buttonarray[] = $mform->createElement('submit', 'backbtn', get_string('back', 'local_textplus'));
         $buttonarray[] = $mform->createElement('submit', 'executebtn', get_string('execute_replacement', 'local_textplus'));
         $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
-        $mform->setType('backbtn', PARAM_RAW);
+        $mform->setType('backbtn', PARAM_ALPHA);
         
         // Add start over link.
         $startoverlink = \html_writer::link(

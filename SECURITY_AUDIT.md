@@ -160,15 +160,15 @@ Use `required_param()` or `optional_param()` with appropriate PARAM types. Do NO
 **All user input properly validated in index.php:**
 
 ```php
-// Line 88-94: Step and button parameters
+// Line 91-97: Step and button parameters - FIXED to use PARAM_ALPHA
 $step = optional_param('step', 1, PARAM_INT);
-$backbtn = optional_param('backbtn', '', PARAM_RAW);
-$nextbtn = optional_param('nextbtn', '', PARAM_RAW);
-$executebtn = optional_param('executebtn', '', PARAM_RAW);
-$startover = optional_param('startover', '', PARAM_RAW);
+$backbtn = optional_param('backbtn', '', PARAM_ALPHA);
+$nextbtn = optional_param('nextbtn', '', PARAM_ALPHA);
+$executebtn = optional_param('executebtn', '', PARAM_ALPHA);
+$startover = optional_param('startover', '', PARAM_ALPHA);
 
-// Line 130: Array parameter with validation
-$selecteditems = optional_param_array('database_items', [], PARAM_RAW);
+// Line 135: Array parameter with validation - FIXED to use PARAM_TEXT
+$selecteditems = optional_param_array('database_items', [], PARAM_TEXT);
 
 // Lines 144-146: Manual validation and cleaning
 'table' => clean_param($parts[0], PARAM_ALPHANUMEXT),
@@ -178,13 +178,15 @@ $selecteditems = optional_param_array('database_items', [], PARAM_RAW);
 
 **Form validation (classes/form/replacer_form.php):**
 
-All form fields have proper PARAM types:
+All form fields have proper PARAM types - FIXED:
 ```php
 $mform->setType('searchterm', PARAM_TEXT);
 $mform->setType('casesensitive', PARAM_INT);
 $mform->setType('replacementtext', PARAM_TEXT);
-$mform->setType('sesskey', PARAM_RAW);
+$mform->setType('sesskey', PARAM_ALPHANUMEXT);  // FIXED from PARAM_RAW
 $mform->setType('step', PARAM_INT);
+$mform->setType('selecteditems', PARAM_TEXT);   // FIXED from PARAM_RAW
+$mform->setType('backbtn', PARAM_ALPHA);        // FIXED from PARAM_RAW
 ```
 
 **Settings validation (settings.php):**

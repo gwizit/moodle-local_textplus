@@ -89,12 +89,12 @@ if ($default_mode === false) {
 
 // Get current step.
 $step = optional_param('step', 1, PARAM_INT);
-$back_btn = optional_param('backbtn', '', PARAM_RAW);
-$next_btn = optional_param('nextbtn', '', PARAM_RAW);
-$execute_btn = optional_param('executebtn', '', PARAM_RAW);
+$back_btn = optional_param('backbtn', '', PARAM_ALPHA);
+$next_btn = optional_param('nextbtn', '', PARAM_ALPHA);
+$execute_btn = optional_param('executebtn', '', PARAM_ALPHA);
 
 // Handle "Start Over" by clearing cache.
-$start_over = optional_param('startover', '', PARAM_RAW);
+$start_over = optional_param('startover', '', PARAM_ALPHA);
 if ($start_over) {
     $cache->delete('wizard');
     redirect($PAGE->url);
@@ -132,7 +132,7 @@ if ($step == 2 && $next_btn) {
     require_capability('local/textplus:manage', context_system::instance());
     
     // Get selected database items from submitted form - sanitize input.
-    $selected_items = optional_param_array('database_items', [], PARAM_RAW);
+    $selected_items = optional_param_array('database_items', [], PARAM_TEXT);
     
     // Validate at least one item is selected.
     if (empty($selected_items)) {
