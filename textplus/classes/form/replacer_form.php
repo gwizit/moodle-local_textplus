@@ -193,7 +193,7 @@ class replacer_form extends \moodleform {
         $buttonarray[] = $mform->createElement('submit', 'backbtn', get_string('back', 'local_textplus'));
         $buttonarray[] = $mform->createElement('submit', 'executebtn', get_string('execute_replacement', 'local_textplus'));
         $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
-        $mform->setType('backbtn', PARAM_ALPHA);
+        $mform->setType('backbtn', PARAM_ALPHANUMEXT);
         
         // Add start over link.
         $startoverlink = \html_writer::link(

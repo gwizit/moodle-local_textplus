@@ -89,12 +89,12 @@ if ($default_mode === false) {
 
 // Get current step.
 $step = optional_param('step', 1, PARAM_INT);
-$back_btn = optional_param('backbtn', '', PARAM_ALPHA);
-$next_btn = optional_param('nextbtn', '', PARAM_ALPHA);
-$execute_btn = optional_param('executebtn', '', PARAM_ALPHA);
+$back_btn = optional_param('backbtn', '', PARAM_ALPHANUMEXT);
+$next_btn = optional_param('nextbtn', '', PARAM_ALPHANUMEXT);
+$execute_btn = optional_param('executebtn', '', PARAM_ALPHANUMEXT);
 
 // Handle "Start Over" by clearing cache.
-$start_over = optional_param('startover', '', PARAM_ALPHA);
+$start_over = optional_param('startover', '', PARAM_ALPHANUMEXT);
 if ($start_over) {
     $cache->delete('wizard');
     redirect($PAGE->url);
