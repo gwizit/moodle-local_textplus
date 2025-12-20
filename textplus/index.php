@@ -96,6 +96,7 @@ $execute_btn = optional_param('executebtn', '', PARAM_ALPHANUMEXT);
 // Handle "Start Over" by clearing cache.
 $start_over = optional_param('startover', '', PARAM_ALPHANUMEXT);
 if ($start_over) {
+    require_sesskey();
     $cache->delete('wizard');
     redirect($PAGE->url);
 }

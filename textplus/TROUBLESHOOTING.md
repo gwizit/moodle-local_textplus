@@ -1,16 +1,13 @@
-# TextPlus - Troubleshooting Guide# TextPlus - Troubleshooting Guide
+# TextPlus - Troubleshooting Guide
 
-
-
-**Version:** 1.0.5  **Version:** 1.0.5  
-
-**Updated:** January 2025  **Updated:** January 2025  
-
-**Compatibility:** Moodle 4.3 to 5.1+**Compatibility:** Moodle 4.3 to 5.1+
-
-
+**Plugin Name:** TextPlus (local_textplus)  
+**Version:** 3.0.7  
+**Updated:** December 2025  
+**Compatibility:** Moodle 4.3 to 5.1+
 
 This guide covers common issues and solutions for the TextPlus plugin.
+
+Note: The wizard "Start over" action clears server-side wizard state and requires a valid `sesskey`. Use the UI "Start over" button/link rather than bookmarking an old start-over URL.
 
 
 
@@ -831,7 +828,7 @@ When reporting issues, include:### Error: "Extension mismatch: pdf file cannot r
 ### Contact Support
 
 - **GitHub Repository:** https://github.com/gwizit/moodle-local_textplus
-- **Bug Tracker:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Website:** https://gwizit.com
 - **Documentation:** See README.md in plugin directory
 
@@ -1256,4 +1253,4 @@ When reporting issues, include:
 
 ---
 
-*Last Updated: Version 3.0.6 - October 31, 2025*
+*Last Updated: Version 3.0.7 - December 19, 2025*

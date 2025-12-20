@@ -60,7 +60,10 @@ class no_items_found implements renderable, templatable {
         $data = new stdClass();
 
         $data->message = get_string('noitemsfound_desc', 'local_textplus', s($this->search_term));
-        $data->startover_url = new \moodle_url('/local/textplus/index.php', ['startover' => 1]);
+        $data->startover_url = (new \moodle_url('/local/textplus/index.php', [
+            'startover' => 1,
+            'sesskey' => sesskey(),
+        ]))->out(false);
         $data->startover_label = get_string('startover', 'local_textplus');
 
         return $data;

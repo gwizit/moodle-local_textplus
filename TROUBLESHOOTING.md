@@ -1,8 +1,8 @@
 # TextPlus - Troubleshooting Guide
 
 **Plugin Name:** TextPlus (local_textplus)  
-**Version:** 1.0.5  
-**Updated:** January 2025  
+**Version:** 3.0.7  
+**Updated:** December 2025  
 **Compatibility:** Moodle 4.3 to 5.1+
 
 This guide covers common issues and solutions for the TextPlus plugin. For complete documentation, see [textplus/README.md](textplus/README.md).
@@ -183,6 +183,8 @@ post_max_size = 100M
 - Don't let page idle too long
 - Use wizard navigation buttons (not browser back)
 
+**Note:** The "Start over" action now requires a valid `sesskey`. If you have an old bookmarked start-over URL, use the UI "Start over" button/link instead.
+
 ### Getting XSS Protection Warnings
 
 **This is intentional** - The plugin sanitizes all input/output for security. Modified content appearance is for protection against XSS attacks.
@@ -220,7 +222,7 @@ post_max_size = 100M
 
 When reporting issues, include:
 - Moodle version
-- Plugin version (v1.0.5)
+- Plugin version (v3.0.7)
 - PHP version
 - Exact error message
 - Steps to reproduce
@@ -231,7 +233,7 @@ When reporting issues, include:
 ### Contact Support
 
 - **GitHub Repository:** https://github.com/gwizit/moodle-local_textplus
-- **Bug Tracker:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Developer Website:** https://gwizit.com
 - **Detailed Guide:** [textplus/TROUBLESHOOTING.md](textplus/TROUBLESHOOTING.md)
 
@@ -248,4 +250,4 @@ When reporting issues, include:
 
 *For detailed troubleshooting with step-by-step solutions, see [textplus/TROUBLESHOOTING.md](textplus/TROUBLESHOOTING.md)*
 
-*Last Updated: Version 1.0.5 - January 2025*
+*Last Updated: Version 3.0.7 - December 19, 2025*

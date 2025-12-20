@@ -36,23 +36,23 @@ defined('MOODLE_INTERNAL') || die();
  */
 class replacer {
     /** @var array Configuration options */
-    private $config;
+    private array $config;
 
     /** @var array Statistics */
-    private $stats;
+    private array $stats;
 
     /** @var array Replacement log entries */
-    private $replacement_log;
+    private array $replacement_log;
 
     /** @var array Output messages */
-    private $output;
+    private array $output;
 
     /**
      * Constructor
      *
      * @param array $config Configuration options
      */
-    public function __construct($config = []) {
+    public function __construct(array $config = []) {
         global $CFG;
 
         $this->config = array_merge([
@@ -66,6 +66,7 @@ class replacer {
             'items_found' => 0,
             'items_replaced' => 0,
             'items_failed' => 0,
+            'occurrences_replaced' => 0,
         ];
 
         $this->output = [];
@@ -78,8 +79,8 @@ class replacer {
      * @param string $searchterm Search term
      * @return bool True if contains wildcards
      */
-    private function has_wildcards($searchterm) {
-        return strpos($searchterm, '*') !== false;
+    private function has_wildcards(string $searchterm): bool {
+        return str_contains($searchterm, '*');
     }
 
     /**
@@ -89,7 +90,7 @@ class replacer {
      * @param bool $casesensitive Case sensitive matching
      * @return string Regex pattern
      */
-    private function wildcard_to_regex($pattern, $casesensitive = false) {
+    private function wildcard_to_regex(string $pattern, bool $casesensitive = false): string {
         // Escape special regex characters except *
         $pattern = preg_quote($pattern, '/');
         // Replace escaped \* with \S* (match non-whitespace characters only)
@@ -108,13 +109,13 @@ class replacer {
      * @param bool $casesensitive Case sensitive search
      * @return bool True if found
      */
-    private function text_matches($content, $searchterm, $casesensitive = false) {
+    private function text_matches(string $content, string $searchterm, bool $casesensitive = false): bool {
         if ($this->has_wildcards($searchterm)) {
             $regex = $this->wildcard_to_regex($searchterm, $casesensitive);
             return preg_match($regex, $content) === 1;
         } else {
             if ($casesensitive) {
-                return strpos($content, $searchterm) !== false;
+                return str_contains($content, $searchterm);
             } else {
                 return stripos($content, $searchterm) !== false;
             }
@@ -413,8 +414,8 @@ class replacer {
                 return false;
             }
             
-            // Unserialize PHP data
-            $unserialized = @unserialize($decoded);
+            // Unserialize PHP data (hardened: only allow stdClass objects)
+            $unserialized = @unserialize($decoded, ['allowed_classes' => [\stdClass::class]]);
             
             if ($unserialized === false) {
                 return false;
@@ -485,8 +486,8 @@ class replacer {
                 $decoded = $content;
             }
             
-            // Unserialize PHP data
-            $unserialized = @unserialize($decoded);
+            // Unserialize PHP data (hardened: only allow stdClass objects)
+            $unserialized = @unserialize($decoded, ['allowed_classes' => [\stdClass::class]]);
             
             if ($unserialized === false) {
                 // Not serialized data, treat as regular text
@@ -1220,10 +1221,12 @@ class replacer {
                     
                     $this->add_output(get_string('processing_replaced', 'local_textplus', $occurrences), 'success');
                     $this->stats['items_replaced']++;
+                    $this->stats['occurrences_replaced'] += $occurrences;
                     $this->add_replacement_log($table, $field, $id, 'success', "Replaced {$occurrences} occurrence(s)");
                 } else {
                     $this->add_output(get_string('processing_would_replace', 'local_textplus', $occurrences), 'info');
                     $this->stats['items_replaced']++;
+                    $this->stats['occurrences_replaced'] += $occurrences;
                     $this->add_replacement_log($table, $field, $id, 'preview', "Would replace {$occurrences} occurrence(s)");
                 }
 

@@ -54,7 +54,7 @@
                 <label for="{{checkbox_id}}" class="local-textplus-item-label">
                     <div class="local-textplus-item-header">
                         {{#has_url}}
-                        <a href="{{url}}" target="_blank" onclick="event.stopPropagation();">{{location}}</a>
+                        <a href="{{url}}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">{{location}}</a>
                         {{/has_url}}
                         {{^has_url}}
                         {{location}}

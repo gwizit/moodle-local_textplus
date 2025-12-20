@@ -39,10 +39,10 @@ use stdClass;
 class item_selection implements renderable, templatable {
 
     /** @var array Database items */
-    protected $database_items;
+    protected array $database_items;
 
     /** @var string Search term */
-    protected $search_term;
+    protected string $search_term;
 
     /**
      * Constructor.
@@ -50,7 +50,7 @@ class item_selection implements renderable, templatable {
      * @param array $database_items Database items
      * @param string $search_term Search term
      */
-    public function __construct($database_items, $search_term = '') {
+    public function __construct(array $database_items, string $search_term = '') {
         $this->database_items = $database_items;
         $this->search_term = $search_term;
     }

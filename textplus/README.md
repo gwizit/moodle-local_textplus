@@ -4,11 +4,18 @@ This powerful Moodle plugin helps administrators search and selectively replace 
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** 3.0.6  
+**Version:** 3.0.7  
 **Compatibility:** Moodle 4.3 to 5.1+  
 **License:** GNU GPL v3 or later
 
 ---
+
+## What's New in Version 3.0.7
+
+### 🔒 Security & Hardening Updates (December 19, 2025)
+- **CSRF Hardening** - The "Start over" action now requires a valid sesskey
+- **Reverse-tabnabbing mitigation** - Links opened with `target="_blank"` include `rel="noopener noreferrer"`
+- **Defense-in-depth** - Unserialization restricted to `stdClass` objects only
 
 ## What's New in Version 3.0.6
 
@@ -360,7 +367,7 @@ The plugin defines two capabilities and requires site administrator access:
 
 ### Moodle Requirements
 - **Moodle version**: 4.3 to 5.1+ (fully tested and compatible)
-- **PHP version**: 7.4 or higher (8.0+ recommended)
+- **PHP version**: 8.0 or higher (required by Moodle 4.3)
 
 ### PHP Extensions
 - **Standard PHP libraries** (included by default)
@@ -464,14 +471,14 @@ The plugin defines two capabilities and requires site administrator access:
 For issues, questions, or feature requests:
 
 - **GitHub Repository:** https://github.com/gwizit/moodle-local_textplus
-- **Bug Tracker:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Website**: [https://gwizit.com](https://gwizit.com)
 - **Email**: Contact through gwizit.com
 - **Moodle Plugins**: *(pending submission)*
 
 **Found this plugin useful?** Consider supporting its development!
 
-- **Donate:** https://square.link/u/F3EXIaVp
+- **Donate:** https://square.link/u/DMRTvZ0Y
 
 Your support helps us maintain and improve this plugin. Thank you! 💝
 

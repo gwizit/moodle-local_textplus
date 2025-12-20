@@ -1,8 +1,8 @@
 # Moodle Security Guidelines Compliance Audit
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 3.0.6  
-**Audit Date:** October 2025  
+**Version:** 3.0.7  
+**Audit Date:** December 2025  
 **Reference:** https://moodledev.io/general/development/policies/security
 
 ---
@@ -12,6 +12,11 @@
 This comprehensive security audit verifies that the TextPlus plugin fully complies with all Moodle security guidelines and best practices. The plugin implements proper authentication, authorization, input validation, output escaping, CSRF protection, SQL injection prevention, and audit logging.
 
 **Overall Status:** ✅ **FULLY COMPLIANT**
+
+### Recent Updates (v3.0.7)
+- ✅ CSRF hardening - "Start over" cache-clearing action now requires a valid sesskey
+- ✅ Reverse-tabnabbing mitigation - Links opened with target=_blank include rel=noopener
+- ✅ Defense-in-depth - Unserialization restricted to stdClass objects
 
 ### Recent Updates (v3.0.6)
 - ✅ Security hardening - All PARAM_RAW replaced with proper parameter types

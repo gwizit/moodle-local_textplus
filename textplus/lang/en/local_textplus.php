@@ -148,8 +148,8 @@ $string['eventtextreplaced'] = 'Text replaced';
 $string['event_description'] = 'The user with id \'{$a->userid}\' replaced text matching term \'{$a->searchterm}\'. Database items replaced: {$a->itemsreplaced}.';
 
 // Credits.
-$string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank">G Wiz IT Solutions</a> | <a href="https://square.link/u/F3EXIaVp" target="_blank">💝 Support This Project</a>';
-$string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> Please consider <a href="https://square.link/u/F3EXIaVp" target="_blank">making a donation</a> to help us maintain and improve this plugin. Your support keeps this project alive!';
+$string['credits'] = 'Developed by <a href="https://gwizit.com" target="_blank" rel="noopener noreferrer">G Wiz IT Solutions</a> | <a href="https://square.link/u/DMRTvZ0Y" target="_blank" rel="noopener noreferrer">💝 Support This Project</a> | <a href="https://github.com/gwizit/moodle-local_textplus/issues" target="_blank" rel="noopener noreferrer">🛠️ Support</a>';
+$string['donation_message'] = '💝 <strong>Found this plugin useful?</strong> Please consider <a href="https://square.link/u/DMRTvZ0Y" target="_blank" rel="noopener noreferrer">making a donation</a> to help us maintain and improve this plugin. Need help? <a href="https://github.com/gwizit/moodle-local_textplus/issues" target="_blank" rel="noopener noreferrer">Report an issue</a>.';
 
 // Additional template strings.
 $string['totaloccurrences'] = 'Total occurrences';

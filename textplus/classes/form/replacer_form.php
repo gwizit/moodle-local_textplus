@@ -197,7 +197,7 @@ class replacer_form extends \moodleform {
         
         // Add start over link.
         $startoverlink = \html_writer::link(
-            new \moodle_url('/local/textplus/index.php', ['startover' => 1]),
+            new \moodle_url('/local/textplus/index.php', ['startover' => 1, 'sesskey' => sesskey()]),
             get_string('startover', 'local_textplus'),
             ['class' => 'btn btn-secondary ml-2']
         );

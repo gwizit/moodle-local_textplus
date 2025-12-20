@@ -2,6 +2,20 @@
 
 ---
 
+## Version 3.0.7 - Security Hardening
+
+### Date: December 19, 2025
+
+### ✅ COMPLETE
+
+#### Changes Made
+- CSRF hardening: the "Start over" wizard action now requires a valid sesskey.
+- Reverse-tabnabbing mitigation: links opened with `target="_blank"` now include `rel="noopener noreferrer"`.
+- Defense-in-depth: unserialization restricted to `stdClass` objects only.
+- Statistics: tracked total occurrences replaced for accurate results reporting.
+
+---
+
 ## Version 1.0.3 - Cache API Migration
 
 ### Date: October 24, 2025

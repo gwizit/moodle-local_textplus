@@ -1,16 +1,16 @@
 # Moodle Plugin Contribution Checklist Compliance Report
 
 **Plugin:** TextPlus (local_textplus)  
-**Version:** 3.0.5  
-**Date:** January 2025  
+**Version:** 3.0.7  
+**Date:** December 2025  
 **Developer:** G Wiz IT Solutions  
 **Status:** ✅ Production Ready
 
 This document confirms compliance with the Moodle Plugin Contribution Checklist as outlined at:
 https://moodledev.io/general/community/plugincontribution/checklist
 
-**Version 3.0.5 Update:**  
-This release includes comprehensive code quality verification, complete documentation updates, and full compatibility testing with Moodle 4.3 to 5.1+. All security guidelines are met with an A+ rating.
+**Version 3.0.7 Update:**  
+This release includes additional security hardening (CSRF protection for the "Start over" action, reverse-tabnabbing mitigation on external links, and unserialize defense-in-depth), plus documentation/version updates.
 
 ---
 
@@ -126,7 +126,7 @@ This release includes comprehensive code quality verification, complete document
 - **Proper Attribution:** ✅ Clear ownership attribution
 
 ### CSS Styles
-- **CSS Files:** ✅ No CSS files (styles are inline in index.php)
+- **CSS Files:** ✅ Uses a plugin stylesheet (`styles.css`) with namespaced selectors
 - **Namespaced Selectors:** ✅ All CSS classes properly namespaced:
   - `.occurrence-modal`, `.occurrence-modal-content`, `.occurrence-modal-header`
   - `.item-list`, `.item`, `.item-location`, `.item-table`

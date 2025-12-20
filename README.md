@@ -5,7 +5,7 @@
 **Type:** Local Plugin (local_textplus)  
 **Developer:** G Wiz IT Solutions  
 **Website:** https://gwizit.com  
-**Version:** 3.0.6  
+**Version:** 3.0.7  
 **License:** GNU GPL v3 or later
 
 ---
@@ -79,7 +79,7 @@ For detailed installation instructions, see [textplus/README.md](textplus/README
 ## 🔗 Links
 
 - **Source Code:** https://github.com/gwizit/moodle-local_textplus
-- **Bug Tracker:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Developer Website:** https://gwizit.com
 - **Moodle Plugins Directory:** *(pending submission)*
 
@@ -133,13 +133,15 @@ TextPlus has been thoroughly reviewed and achieves an **A+ security rating**:
 
 See [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for complete security assessment.
 
+**Note:** The wizard "Start over" action clears server-side wizard state and now requires a valid `sesskey` (CSRF protection). Use the UI buttons/links rather than bookmarking the start-over URL.
+
 ---
 
 ## 📝 Requirements
 
 ### Moodle Requirements
 - **Moodle version:** 4.3 to 5.1+ (fully tested)
-- **PHP version:** 7.4 or higher (8.0+ recommended)
+- **PHP version:** 8.0 or higher (required by Moodle 4.3)
 
 ### PHP Extensions
 - **Required:** mbstring, mysqli/pgsql, json
@@ -156,7 +158,7 @@ See [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for complete security assessment.
 
 Contributions are welcome!
 
-- **Report bugs:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Submit pull requests:** https://github.com/gwizit/moodle-local_textplus
 - **Contact us:** Through https://gwizit.com
 
@@ -174,8 +176,8 @@ This plugin is licensed under the [GNU GPL v3 or later](LICENSE).
 
 **Found this plugin useful?** Consider supporting its development!
 
-- **Donate:** https://square.link/u/F3EXIaVp
-- **Report issues:** https://github.com/gwizit/moodle-local_textplus/issues
+- **Donate:** https://square.link/u/DMRTvZ0Y
+- **Support / Issues:** https://github.com/gwizit/moodle-local_textplus/issues
 - **Professional support:** Contact via https://gwizit.com
 
 ---

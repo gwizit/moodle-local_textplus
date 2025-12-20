@@ -39,13 +39,13 @@ use stdClass;
 class results implements renderable, templatable {
 
     /** @var \local_textplus\replacer Replacer instance */
-    protected $replacer;
+    protected \local_textplus\replacer $replacer;
 
     /** @var array Database items */
-    protected $database_items;
+    protected array $database_items;
 
     /** @var bool Whether this is scan only */
-    protected $scan_only;
+    protected bool $scan_only;
 
     /**
      * Constructor.
@@ -54,7 +54,7 @@ class results implements renderable, templatable {
      * @param array $database_items Database items
      * @param bool $scan_only Whether this is scan only
      */
-    public function __construct($replacer, $database_items, $scan_only) {
+    public function __construct(\local_textplus\replacer $replacer, array $database_items, bool $scan_only) {
         $this->replacer = $replacer;
         $this->database_items = $database_items;
         $this->scan_only = $scan_only;
@@ -175,7 +175,10 @@ class results implements renderable, templatable {
         $data->donation_message = get_string('donation_message', 'local_textplus');
 
         // Start over button.
-        $data->startover_url = new \moodle_url('/local/textplus/index.php');
+        $data->startover_url = (new \moodle_url('/local/textplus/index.php', [
+            'startover' => 1,
+            'sesskey' => sesskey(),
+        ]))->out(false);
         $data->startover_label = get_string('startover', 'local_textplus');
 
         return $data;
