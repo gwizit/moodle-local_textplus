@@ -5,7 +5,7 @@ This powerful Moodle plugin helps administrators search and selectively replace 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
 **Version:** 3.1.0  
-**Compatibility:** Moodle 4.3 to 5.2+  
+**Compatibility:** Moodle 4.5 to 5.2+  
 **License:** GNU GPL v3 or later
 
 ---
@@ -375,8 +375,8 @@ The plugin defines two capabilities and requires site administrator access:
 ## Requirements
 
 ### Moodle Requirements
-- **Moodle version**: 4.3 to 5.2+ (fully tested and compatible)
-- **PHP version**: 8.0 or higher (required by Moodle 4.3)
+- **Moodle version**: 4.5 to 5.2+ (fully tested and compatible)
+- **PHP version**: 8.1 or higher (required by Moodle 4.5)
 
 ### PHP Extensions
 - **Standard PHP libraries** (included by default)
@@ -421,6 +421,19 @@ The plugin defines two capabilities and requires site administrator access:
 ---
 
 ## Changelog
+
+### Version 3.1.0 (2026-02-28)
+**Moodle 5.2 Compatibility:**
+- 🔄 **Bootstrap 5 Migration** - Replaced Bootstrap 4 margin utilities with Bootstrap 5 equivalents (`mr-2` → `me-2`, `ml-2` → `ms-2`)
+- ✅ **Full compatibility audit** - Verified no usage of other deprecated Bootstrap 4 classes
+- 📋 **Minimum version raised** to Moodle 4.5
+
+### Version 3.0.7 (2025-12-19)
+**Security & Hardening:**
+- 🔒 **CSRF Hardening** - "Start over" action now requires a valid sesskey
+- 🔒 **Reverse-tabnabbing mitigation** - External links include `rel="noopener noreferrer"`
+- 🔒 **Defense-in-depth** - Unserialization restricted to `stdClass` objects only
+- 📊 Tracked total occurrences replaced for accurate results reporting
 
 ### Version 1.0.1 (2025-10-21)
 **Bug Fixes:**
