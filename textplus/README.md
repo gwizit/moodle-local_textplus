@@ -4,11 +4,20 @@ This powerful Moodle plugin helps administrators search and selectively replace 
 
 **Developed by:** [G Wiz IT Solutions](https://gwizit.com)  
 **Plugin Type:** Local  
-**Version:** 3.0.7  
-**Compatibility:** Moodle 4.3 to 5.1+  
+**Version:** 3.1.0  
+**Compatibility:** Moodle 4.3 to 5.2+  
 **License:** GNU GPL v3 or later
 
 ---
+
+## What's New in Version 3.1.0
+
+### 🔄 Moodle 5.2 Compatibility (February 28, 2026)
+- **Bootstrap 5 Migration** - Replaced all Bootstrap 4 CSS utility classes with Bootstrap 5 equivalents:
+  - `mr-2` → `me-2` (margin-right to margin-end)
+  - `ml-2` → `ms-2` (margin-left to margin-start)
+- **No External API migration needed** - Plugin does not use external services
+- **Full audit completed** - Verified no usage of deprecated `data-toggle`, `btn-block`, `form-row`, `custom-control`, `badge-*`, `font-weight-bold`, `text-left`/`text-right`, or `float-left`/`float-right` Bootstrap 4 classes
 
 ## What's New in Version 3.0.7
 
@@ -366,7 +375,7 @@ The plugin defines two capabilities and requires site administrator access:
 ## Requirements
 
 ### Moodle Requirements
-- **Moodle version**: 4.3 to 5.1+ (fully tested and compatible)
+- **Moodle version**: 4.3 to 5.2+ (fully tested and compatible)
 - **PHP version**: 8.0 or higher (required by Moodle 4.3)
 
 ### PHP Extensions

@@ -2,6 +2,37 @@
 
 ---
 
+## Version 3.1.0 - Moodle 5.2 Compatibility
+
+### Date: February 28, 2026
+
+### ✅ COMPLETE
+
+#### Bootstrap 5 Migration
+Moodle 5.2 uses Bootstrap 5, which renamed several CSS utility classes. The following changes were made:
+
+| File | Old (Bootstrap 4) | New (Bootstrap 5) |
+|------|-------------------|-------------------|
+| `templates/item_selection.mustache` | `mr-2` | `me-2` |
+| `classes/form/replacer_form.php` | `ml-2` | `ms-2` |
+
+#### No External API Migration Needed
+This plugin does not use Moodle external services (`externallib.php`), so no migration from legacy global classes to the `core_external\*` namespace was required.
+
+#### Full Compatibility Audit
+The following Bootstrap 4 patterns were verified as **not present** in the codebase — no changes needed:
+- `data-toggle` → `data-bs-toggle`
+- `badge-success` / `badge-secondary` → `text-bg-success` / `text-bg-secondary`
+- `custom-control custom-checkbox` → `form-check`
+- `font-weight-bold` → `fw-bold`
+- `text-left` / `text-right` → `text-start` / `text-end`
+- `btn-block` → `d-block w-100`
+- `form-row` → `row g-3`
+- `form-control` on `<select>` → `form-select` (Moodle form API handles this internally)
+- `float-left` / `float-right` → `float-start` / `float-end`
+
+---
+
 ## Version 3.0.7 - Security Hardening
 
 ### Date: December 19, 2025
